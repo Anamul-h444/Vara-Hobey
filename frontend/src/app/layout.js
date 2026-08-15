@@ -1,5 +1,6 @@
 import { Inter, Hind_Siliguri } from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '@/contex/AuthContext';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -23,7 +24,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="bn" className={`${inter.variable} ${hindSiliguri.variable}`}>
       <body className="bg-[#080b11] text-slate-100 antialiased selection:bg-emerald-500/30 selection:text-emerald-300">
-        {children}
+      <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
