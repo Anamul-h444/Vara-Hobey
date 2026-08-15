@@ -3,10 +3,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { X, Sparkles } from 'lucide-react';
+import { X, Sparkles, LogIn } from 'lucide-react';
 import { navMenuItems } from '@/config/navigation';
 
-export default function MobileMenuDrawer({ isOpen, onClose }) {
+export default function MobileMenuDrawer({ isOpen, onClose, onOpenSignIn, onOpenSignUp }) {
   const pathname = usePathname();
 
   if (!isOpen) return null;
@@ -14,22 +14,20 @@ export default function MobileMenuDrawer({ isOpen, onClose }) {
   return (
     <div className="fixed inset-0 z-[999] md:hidden">
       
-      {/* 1. Backdrop Overlay (ক্লিক করলে ড্রয়ার বন্ধ হবে) */}
+      {/* ১. ডার্ক ব্যাকড্রপ ওভারলে */}
       <div 
         className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in" 
         onClick={onClose} 
       />
 
-      {/* 2. Full-Height Drawer (উপর থেকে নিচ সম্পূর্ণ কভার করবে) */}
-      <div className="fixed inset-y-0 left-0 w-[85%] max-w-xs bg-[#0d111a]/95 backdrop-blur-2xl border-r border-[#1e2433] p-5 shadow-2xl flex flex-col justify-between z-10 animate-in slide-in-from-left duration-300">
+      {/* ২. ফুল-হাইট স্লিম ড্রয়ার */}
+      <div className="fixed inset-y-0 left-0 w-[82%] max-w-xs bg-[#0d111a]/95 backdrop-blur-2xl border-r border-[#1e2433] p-5 shadow-2xl flex flex-col justify-between z-10 animate-in slide-in-from-left duration-300">
         
-        {/* TOP & MIDDLE SECTION */}
+        {/* টপ ও মেনু সেকশন */}
         <div className="flex flex-col">
           
-          {/* A. HEADER: Logo + Text + Close Button */}
+          {/* হেডার: লোগো ও ক্লোজ বাটন */}
           <div className="relative flex flex-col items-center pt-2 pb-5">
-            
-            {/* Close Button (Right Top Corner) */}
             <button 
               type="button"
               onClick={onClose}
@@ -39,7 +37,7 @@ export default function MobileMenuDrawer({ isOpen, onClose }) {
               <X className="w-5 h-5" />
             </button>
 
-            {/* Logo Icon with Ambient Glow */}
+            {/* নিয়ন গ্লোয়িং লোগো */}
             <div className="relative group mb-2.5">
               <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-purple-600 to-emerald-500 opacity-70 blur-md pointer-events-none" />
               <div className="relative w-12 h-12 rounded-2xl bg-[#161c28] border border-white/20 flex items-center justify-center text-emerald-400 font-black shadow-inner">
@@ -47,19 +45,18 @@ export default function MobileMenuDrawer({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* English Text Below Logo */}
+            {/* লোগো টেক্সট */}
             <span className="text-sm font-black tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-200 to-white text-center drop-shadow">
               Vara Hobe
             </span>
           </div>
 
-          {/* B. STYLISH SEPARATOR / DIVIDER */}
+          {/* স্টাইলিশ সেপারেটর */}
           <div className="relative my-2">
             <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
-            <div className="h-[1px] w-1/2 mx-auto bg-gradient-to-r from-transparent via-purple-500/80 to-transparent blur-[1px] -mt-[1px]" />
           </div>
 
-          {/* C. MENU ITEMS LIST */}
+          {/* মেনু আইটেমসমূহ */}
           <nav className="space-y-1.5 pt-4">
             {navMenuItems && navMenuItems.map((item, idx) => {
               const Icon = item.icon;
@@ -70,7 +67,7 @@ export default function MobileMenuDrawer({ isOpen, onClose }) {
                   key={idx}
                   href={item.href}
                   onClick={onClose}
-                  className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 ${
+                  className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl font-semibold text-xs sm:text-sm transition-all duration-200 ${
                     isActive 
                       ? 'bg-gradient-to-r from-purple-500/20 to-emerald-500/10 text-white border border-purple-500/30 shadow-[0_0_12px_rgba(168,85,247,0.2)]' 
                       : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -82,28 +79,36 @@ export default function MobileMenuDrawer({ isOpen, onClose }) {
               );
             })}
           </nav>
-
         </div>
 
-        {/* BOTTOM SECTION: SIGN UP & SIGN IN */}
+        {/* বটম সেকশন: অথ মডাল ট্রিগার বাটন */}
         <div className="pt-4 border-t border-[#1e2433] space-y-2.5">
-          {/* Sign Up Button (Glass Outline) */}
-          <Link 
-            href="/signup" 
-            onClick={onClose}
-            className="w-full py-2.5 rounded-full text-center text-xs font-semibold text-slate-300 hover:text-white bg-[#161c28] hover:bg-[#1f2738] border border-white/10 block transition shadow-sm"
+          
+          {/* Sign In বাটন (ক্লিক করলে Auth Modal খুলবে) */}
+          <button 
+            type="button"
+            onClick={() => {
+              onClose();
+              if (onOpenSignIn) onOpenSignIn();
+            }}
+            className="w-full py-3 rounded-2xl text-center text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(147,51,234,0.35)] transition active:scale-[0.98] cursor-pointer"
           >
-            Sign Up
-          </Link>
+            <LogIn className="w-4 h-4" />
+            <span>Sign In / Register</span>
+          </button>
 
-          {/* Sign In Button (Purple/Violet Glow) */}
-          <Link 
-            href="/login" 
-            onClick={onClose}
-            className="w-full py-2.5 rounded-full text-center text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 block transition shadow-[0_0_15px_rgba(147,51,234,0.35)]"
+          {/* ক্রিয়েট অ্যাকাউন্ট কুইক লিঙ্ক */}
+          <button 
+            type="button"
+            onClick={() => {
+              onClose();
+              if (onOpenSignUp) onOpenSignUp();
+            }}
+            className="w-full py-2 rounded-xl text-center text-[11px] font-medium text-slate-400 hover:text-emerald-400 transition cursor-pointer"
           >
-            Sign In
-          </Link>
+            Don't have an account? <span className="underline">Create one</span>
+          </button>
+
         </div>
 
       </div>

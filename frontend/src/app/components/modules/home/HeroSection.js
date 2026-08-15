@@ -3,16 +3,17 @@
 import React, { useState } from 'react';
 import { 
   Search, 
-  Sparkles, 
-  MapPin, 
   Building2, 
   Banknote, 
   Compass, 
   SlidersHorizontal,
   Navigation,
-  Landmark
+  Landmark,
+  MapPin
 } from 'lucide-react';
 import Button from '@/app/components/ui/Button';
+import Toast from '@/app/components/ui/Toast';
+import CustomSelect from '@/app/components/ui/CustomSelect';
 import { propertyTypes, locationsData, budgetRanges } from '@/config/filterData';
 
 export default function HeroSection({ onOpenFilter, selectedType, setSelectedType }) {
@@ -21,54 +22,65 @@ export default function HeroSection({ onOpenFilter, selectedType, setSelectedTyp
   const [selectedThana, setSelectedThana] = useState('');
   const [selectedArea, setSelectedArea] = useState('');
   const [selectedBudget, setSelectedBudget] = useState('');
+  const [showToast, setShowToast] = useState(false);
 
-  // Handle Type Not Selected Error Toast
   const handleFilterClick = () => {
     if (!selectedType) {
-      alert('Please select a Property Type first to use Advanced Filters!');
+      setShowToast(true);
       return;
     }
     onOpenFilter();
   };
 
   return (
-    <div className="relative isolate w-full pt-12 pb-16 sm:py-20 px-4 flex flex-col items-center justify-center text-center overflow-hidden">
+    <div className="relative isolate w-full pt-12 pb-32 sm:py-20 px-4 flex flex-col items-center justify-center text-center">
       
-      {/* 1. Background Apartment Image */}
+      {/* টোস্ট অ্যালার্ট */}
+      <Toast 
+        isVisible={showToast} 
+        onClose={() => setShowToast(false)} 
+        messageBn="অনুগ্রহ করে প্রথমে একটি প্রপার্টি টাইপ নির্বাচন করুন!"
+        messageEn="Please select a property type first to apply filters."
+      />
+
+      {/* ১. ব্যাকগ্রাউন্ড ইমেজ */}
       <img
         src="/hero-bg.jpeg"
         alt="Apartment Background"
-        className="absolute inset-0 w-full h-full object-cover object-center z-0 brightness-95 contrast-105"
+        className="absolute inset-0 w-full h-full object-cover object-center z-0 brightness-[0.85] contrast-[1.05]"
       />
 
-      {/* 2. Amber & Dark Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/15 via-transparent to-yellow-500/10 z-[1] mix-blend-screen" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0b0f17]/30 via-[#0b0f17]/40 to-[#0b0f17] z-[2]" />
+      {/* ২. অ্যাম্বার ও ডার্ক ওভারলে */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 via-transparent to-yellow-500/5 z-[1] mix-blend-screen" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#080b11]/40 via-[#080b11]/60 to-[#080b11] z-[2]" />
 
-      {/* 3. Hero Big Title */}
-      <div className="relative z-10 max-w-4xl mx-auto mb-6">
-        <h1 className="text-3xl sm:text-6xl md:text-7xl font-black text-white uppercase tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]">
-          Yours To Rent
+      {/* ৩. টাইটেল */}
+      <div className="relative z-10 max-w-3xl mx-auto mb-6 sm:mb-8">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl xl:text-7xl font-extrabold text-white tracking-tight leading-none drop-shadow-2xl">
+          YOURS TO RENT
         </h1>
+        <p className="font-bangla text-xs sm:text-sm text-slate-300/90 mt-3 font-normal max-w-lg mx-auto tracking-wide">
+          খুঁজে নিন আপনার পছন্দের ফ্ল্যাট, সাবলেট, মেস কিংবা বাণিজ্যিক স্পেস
+        </p>
       </div>
 
-      {/* 4. MAIN FLOATING SEARCH CAPSULE */}
-      <div className="relative z-10 w-full max-w-3xl mx-auto mb-5 group">
-        <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-24 h-12 bg-purple-600/40 rounded-full blur-xl pointer-events-none group-hover:bg-purple-500/60 transition duration-500" />
-        <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-24 h-12 bg-emerald-500/40 rounded-full blur-xl pointer-events-none group-hover:bg-cyan-500/60 transition duration-500" />
+      {/* ৪. কুইক সার্চ বার */}
+      <div className="relative z-10 w-full max-w-2xl mx-auto mb-6 group">
+        <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-20 h-10 bg-purple-500/30 rounded-full blur-lg pointer-events-none group-hover:bg-purple-500/50 transition duration-500" />
+        <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-20 h-10 bg-emerald-500/30 rounded-full blur-lg pointer-events-none group-hover:bg-emerald-500/50 transition duration-500" />
 
-        <div className="relative rounded-2xl sm:rounded-full p-[1.5px] bg-gradient-to-r from-purple-500/80 via-white/10 to-emerald-400/80 shadow-2xl transition duration-300">
-          <div className="flex items-center bg-[#10141f]/90 backdrop-blur-2xl rounded-2xl sm:rounded-full p-2">
-            <Search className="ml-3 sm:ml-4 w-5 h-5 text-purple-300/80 shrink-0" />
+        <div className="relative rounded-full p-[1px] bg-gradient-to-r from-purple-500/60 via-white/15 to-emerald-400/60 shadow-2xl">
+          <div className="flex items-center bg-[#0d111a]/85 backdrop-blur-2xl rounded-full px-3 py-1.5">
+            <Search className="ml-2 w-4 h-4 text-slate-400 shrink-0" />
             <input
               type="text"
-              placeholder="Quick search by keywords or landmark..."
-              className="w-full bg-transparent text-white px-3 py-2 text-sm sm:text-base focus:outline-none placeholder:text-slate-400 font-medium"
+              placeholder="এলাকা বা ল্যান্ডমার্ক দিয়ে সহজে সার্চ করুন..."
+              className="font-bangla w-full bg-transparent text-slate-200 px-3 py-1.5 text-xs sm:text-sm focus:outline-none placeholder:text-slate-500 font-normal"
             />
             <Button 
               variant="primary" 
               size="sm" 
-              className="rounded-full px-5 py-2 text-xs sm:text-sm font-bold shadow-md bg-white/10 hover:bg-white/20 text-slate-200 border border-white/10"
+              className="rounded-full px-5 py-1.5 text-xs font-medium shadow-none bg-white/10 hover:bg-white/20 text-slate-200 border border-white/10 transition"
             >
               Search
             </Button>
@@ -76,142 +88,116 @@ export default function HeroSection({ onOpenFilter, selectedType, setSelectedTyp
         </div>
       </div>
 
-      {/* 5. FLOATING SMART FILTER BAR (Type, Division, District, Upazila/Thana, Moholla, Budget, Filter Button) */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto bg-[#11151f]/80 backdrop-blur-xl border border-white/15 rounded-3xl p-3 sm:p-4 shadow-2xl">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5 items-center text-left">
+      {/* ৫. রেসপন্সিভ ফিল্টার বার (ট্যাবলেটে পারফেক্ট গ্রিড + ডেস্কটপে ক্যাপসুল) */}
+      <div className="relative z-30 w-full max-w-5xl mx-auto bg-[#0d111a]/80 backdrop-blur-2xl border border-white/15 rounded-3xl xl:rounded-full p-2 sm:p-3 xl:p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-2 sm:gap-2.5 xl:gap-0 items-center text-left">
           
-          {/* ১. Property Type */}
-          <div className="bg-[#161c28]/90 border border-white/10 rounded-2xl p-2 flex flex-col justify-center">
-            <label className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
-              <Building2 className="w-3 h-3 text-emerald-400" /> Type
-            </label>
-            <select
+          {/* ১. Type */}
+          <div className="xl:border-r xl:border-white/10">
+            <CustomSelect
+              label="Type"
+              icon={Building2}
               value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="bg-transparent text-xs sm:text-sm font-semibold text-white focus:outline-none cursor-pointer mt-0.5"
-            >
-              <option value="" className="bg-[#11151f] text-slate-400">Select Type</option>
-              {propertyTypes.map((t) => (
-                <option key={t.id} value={t.id} className="bg-[#11151f] text-white">
-                  {t.name} ({t.bnName})
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedType(val)}
+              options={propertyTypes}
+              placeholder="All Types"
+            />
           </div>
 
-          {/* ২. Division (বিভাগ) */}
-          <div className="bg-[#161c28]/90 border border-white/10 rounded-2xl p-2 flex flex-col justify-center">
-            <label className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
-              <Compass className="w-3 h-3 text-purple-400" /> Division
-            </label>
-            <select
+          {/* ২. Division */}
+          <div className="xl:border-r xl:border-white/10">
+            <CustomSelect
+              label="Division"
+              icon={Compass}
               value={selectedDivision}
-              onChange={(e) => {
-                setSelectedDivision(e.target.value);
+              onChange={(val) => {
+                setSelectedDivision(val);
                 setSelectedDistrict('');
                 setSelectedThana('');
                 setSelectedArea('');
               }}
-              className="bg-transparent text-xs sm:text-sm font-semibold text-white focus:outline-none cursor-pointer mt-0.5"
-            >
-              <option value="" className="bg-[#11151f] text-slate-400">All Division</option>
-              {locationsData.divisions.map((d) => (
-                <option key={d.id} value={d.id} className="bg-[#11151f] text-white">
-                  {d.name} ({d.bnName})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* ৩. District (জেলা) */}
-          <div className="bg-[#161c28]/90 border border-white/10 rounded-2xl p-2 flex flex-col justify-center">
-            <label className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-cyan-400" /> District
-            </label>
-            <select
-              value={selectedDistrict}
-              onChange={(e) => {
-                setSelectedDistrict(e.target.value);
-                setSelectedThana('');
-                setSelectedArea('');
-              }}
-              disabled={!selectedDivision}
-              className="bg-transparent text-xs sm:text-sm font-semibold text-white focus:outline-none cursor-pointer mt-0.5 disabled:opacity-40"
-            >
-              <option value="" className="bg-[#11151f] text-slate-400">Select District</option>
-              {selectedDivision && locationsData.districts[selectedDivision]?.map((dist) => (
-                <option key={dist.id} value={dist.id} className="bg-[#11151f] text-white">
-                  {dist.name} ({dist.bnName})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* ৪. Upazila / Thana (উপজেলা / থানা) */}
-          <div className="bg-[#161c28]/90 border border-white/10 rounded-2xl p-2 flex flex-col justify-center">
-            <label className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
-              <Landmark className="w-3 h-3 text-pink-400" /> Upazila / Thana
-            </label>
-            <select
-              value={selectedThana}
-              onChange={(e) => {
-                setSelectedThana(e.target.value);
-                setSelectedArea('');
-              }}
-              disabled={!selectedDistrict}
-              className="bg-transparent text-xs sm:text-sm font-semibold text-white focus:outline-none cursor-pointer mt-0.5 disabled:opacity-40"
-            >
-              <option value="" className="bg-[#11151f] text-slate-400">Select Thana</option>
-              {selectedDistrict && locationsData.thanas[selectedDistrict]?.map((thana, idx) => (
-                <option key={idx} value={thana.name || thana} className="bg-[#11151f] text-white">
-                  {typeof thana === 'object' ? `${thana.name} (${thana.bnName})` : thana}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* ৫. Moholla / Area (মহল্লা / এলাকা) */}
-          <div className="bg-[#161c28]/90 border border-white/10 rounded-2xl p-2 flex flex-col justify-center">
-            <label className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
-              <Navigation className="w-3 h-3 text-amber-400" /> Moholla / মহল্লা
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Road 4, Block C"
-              value={selectedArea}
-              onChange={(e) => setSelectedArea(e.target.value)}
-              className="bg-transparent text-xs sm:text-sm font-semibold text-white focus:outline-none placeholder:text-slate-500 mt-0.5"
+              options={locationsData.divisions}
+              placeholder="All Division"
             />
           </div>
 
-          {/* ৬. Budget (বাজেট) */}
-          <div className="bg-[#161c28]/90 border border-white/10 rounded-2xl p-2 flex flex-col justify-center">
-            <label className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
-              <Banknote className="w-3 h-3 text-emerald-400" /> Budget
-            </label>
-            <select
-              value={selectedBudget}
-              onChange={(e) => setSelectedBudget(e.target.value)}
-              className="bg-transparent text-xs sm:text-sm font-semibold text-white focus:outline-none cursor-pointer mt-0.5"
-            >
-              <option value="" className="bg-[#11151f] text-slate-400">Any Budget</option>
-              {budgetRanges.map((b, idx) => (
-                <option key={idx} value={b.label} className="bg-[#11151f] text-white">
-                  {b.label}
-                </option>
-              ))}
-            </select>
+          {/* ৩. District */}
+          <div className="xl:border-r xl:border-white/10">
+            <CustomSelect
+              label="District"
+              icon={MapPin}
+              value={selectedDistrict}
+              onChange={(val) => {
+                setSelectedDistrict(val);
+                setSelectedThana('');
+                setSelectedArea('');
+              }}
+              options={selectedDivision ? locationsData.districts[selectedDivision] : []}
+              placeholder="District"
+              disabled={!selectedDivision}
+              disabledHint="প্রথমে বিভাগ নির্বাচন করুন"
+              searchable={true}
+            />
           </div>
 
-          {/* ৭. Advanced Filter Button */}
-          <button
-            type="button"
-            onClick={handleFilterClick}
-            className="col-span-2 sm:col-span-1 lg:col-span-1 h-full min-h-[48px] rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center justify-center gap-2 font-bold text-xs shadow-[0_0_15px_rgba(147,51,234,0.4)] transition cursor-pointer active:scale-95"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            <span>Filter</span>
-          </button>
+          {/* ৪. Thana */}
+          <div className="xl:border-r xl:border-white/10">
+            <CustomSelect
+              label="Thana"
+              icon={Landmark}
+              value={selectedThana}
+              onChange={(val) => {
+                setSelectedThana(val);
+                setSelectedArea('');
+              }}
+              options={selectedDistrict ? locationsData.thanas[selectedDistrict] : []}
+              placeholder="Upazila / Thana"
+              disabled={!selectedDistrict}
+              disabledHint="প্রথমে জেলা নির্বাচন করুন"
+              searchable={true}
+            />
+          </div>
+
+          {/* ৫. Moholla / Area */}
+          <div className="xl:border-r xl:border-white/10">
+            <div className="px-3 py-2 flex flex-col justify-center hover:bg-white/[0.05] rounded-xl transition">
+              <span className="text-[10px] font-medium text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
+                <Navigation className="w-3 h-3 text-amber-400" /> Moholla
+              </span>
+              <input
+                type="text"
+                placeholder="রোড / ব্লক..."
+                value={selectedArea}
+                onChange={(e) => setSelectedArea(e.target.value)}
+                className="font-bangla w-full bg-transparent text-xs font-normal text-slate-100 focus:outline-none placeholder:text-slate-500 mt-0.5"
+              />
+            </div>
+          </div>
+
+          {/* ৬. Budget */}
+          <div className="xl:border-r xl:border-white/10">
+            <CustomSelect
+              label="Budget"
+              icon={Banknote}
+              value={selectedBudget}
+              onChange={(val) => setSelectedBudget(val)}
+              options={budgetRanges}
+              placeholder="Any Budget"
+            />
+          </div>
+
+          {/* ৭. Filters Button (ট্যাবলেটে ফুল উইডথ ও ব্যালান্সড) */}
+          <div className="p-1 xl:pl-2 col-span-1 sm:col-span-2 md:col-span-3 xl:col-span-1">
+            <button
+              type="button"
+              onClick={handleFilterClick}
+              className="w-full h-11 xl:h-10 rounded-xl xl:rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center justify-center gap-1.5 text-xs font-semibold shadow-[0_0_20px_rgba(147,51,234,0.35)] transition-all duration-300 active:scale-95 cursor-pointer"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Filters</span>
+            </button>
+          </div>
 
         </div>
       </div>
