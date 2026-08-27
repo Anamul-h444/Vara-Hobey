@@ -2,15 +2,13 @@
  * ==============================================================================
  * Project: Vara Hobe Web Application
  * File: src/app/components/common/ProfileModal.js
- * Description: Authenticated user profile modal supporting personal info updates,
- *              Cloudinary avatar synchronization, password change, and session logout.
+ * Description: Authenticated user profile modal utilizing modular LogoutButton.
  * ==============================================================================
  */
 
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { 
   X, 
   User, 
@@ -18,7 +16,6 @@ import {
   Mail, 
   Lock, 
   Camera, 
-  LogOut, 
   Save, 
   Eye, 
   EyeOff, 
@@ -28,13 +25,15 @@ import {
   ShieldAlert
 } from 'lucide-react';
 
-// Context & API Services
+// Context, Services & Common Components
 import { useAuth } from '@/context/AuthContext';
 import { updateProfileApi, changePasswordApi } from '@/services/authService';
+import LogoutButton from '@/app/components/common/LogoutButton';
+import { useLogout } from '@/hooks/useLogout';
 
 export default function ProfileModal({ isOpen, onClose, onOpenSignIn }) {
-  const router = useRouter();
-  const { user, updateUserState, logoutState } = useAuth();
+  const { user, updateUserState } = useAuth();
+  const { handleLogout } = useLogout();
 
   /* -------------------------------------------------------------------------- */
   /*                                Component State                             */
@@ -61,7 +60,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSignIn }) {
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
 
   /* -------------------------------------------------------------------------- */
-  /*                   Synchronize Form Data on Modal Open                      */
+  /*                     Synchronize Form Data on Modal Open                    */
   /* -------------------------------------------------------------------------- */
   useEffect(() => {
     if (user && isOpen) {
@@ -83,7 +82,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSignIn }) {
   if (!isOpen || !user) return null;
 
   /* -------------------------------------------------------------------------- */
-  /*                              Helper Methods                                */
+  /*                                Helper Methods                              */
   /* -------------------------------------------------------------------------- */
   const handleTabSwitch = (tab) => {
     setActiveTab(tab);
@@ -100,7 +99,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSignIn }) {
   };
 
   /* -------------------------------------------------------------------------- */
-  /*                      1. Handle General Profile Update                      */
+  /*                        1. Handle General Profile Update                    */
   /* -------------------------------------------------------------------------- */
   const handleUpdateGeneral = async (e) => {
     e.preventDefault();
@@ -115,17 +114,16 @@ export default function ProfileModal({ isOpen, onClose, onOpenSignIn }) {
       
       setStatusMsg({
         type: 'success',
-        text: 'প্রোফাইল তথ্য সফলভাবে আপডেট হয়েছে! হোমপেজে নেওয়া হচ্ছে...',
+        text: 'প্রোফাইল তথ্য সফলভাবে আপডেট হয়েছে!',
       });
       
       setTimeout(() => {
         onClose();
-        router.push('/');
-      }, 1000);
+      }, 900);
     } catch (err) {
       setStatusMsg({ 
         type: 'error', 
-        text: err.response?.data?.message || 'আপডেট করতে সমস্যা হয়েছে।' 
+        text: err.response?.data?.message || 'আপডেট করতে সমস্যা হয়েছে।' 
       });
     } finally {
       setIsLoading(false);
@@ -133,16 +131,16 @@ export default function ProfileModal({ isOpen, onClose, onOpenSignIn }) {
   };
 
   /* -------------------------------------------------------------------------- */
-  /*                     2. Handle User Password Change                         */
+  /*                         2. Handle User Password Change                     */
   /* -------------------------------------------------------------------------- */
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (newPassword.length < 6) {
-      setStatusMsg({ type: 'error', text: 'নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।' });
+      setStatusMsg({ type: 'error', text: 'নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।' });
       return;
     }
     if (newPassword !== confirmPassword) {
-      setStatusMsg({ type: 'error', text: 'নতুন পাসওয়ার্ড দুটি মিলছে না।' });
+      setStatusMsg({ type: 'error', text: 'নতুন পাসওয়ার্ড দুটি মিলছে না।' });
       return;
     }
 
@@ -153,20 +151,17 @@ export default function ProfileModal({ isOpen, onClose, onOpenSignIn }) {
       await changePasswordApi({ currentPassword, newPassword });
       setStatusMsg({
         type: 'success',
-        text: 'পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে! পুনরায় লগইন করুন...',
+        text: 'পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে! লগআউট করা হচ্ছে...',
       });
 
-      setTimeout(() => {
-        logoutState(); // Clear session
-        onClose(); // Dismiss profile modal
-        if (onOpenSignIn) {
-          onOpenSignIn(); // Trigger Sign-In modal
-        }
+      setTimeout(async () => {
+        onClose();
+        await handleLogout();
       }, 1200);
     } catch (err) {
       setStatusMsg({ 
         type: 'error', 
-        text: err.response?.data?.message || 'বর্তমান পাসওয়ার্ডটি সঠিক নয়।' 
+        text: err.response?.data?.message || 'বর্তমান পাসওয়ার্ডটি সঠিক নয়।' 
       });
     } finally {
       setIsLoading(false);
@@ -177,7 +172,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSignIn }) {
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-in fade-in cursor-pointer" 
+        className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-in fade-in duration-200 cursor-pointer" 
         onClick={onClose} 
       />
 
@@ -243,7 +238,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSignIn }) {
 
         {/* Feedback Alert */}
         {statusMsg.text && (
-          <div className={`p-3 mb-4 rounded-xl flex items-center gap-2 text-xs font-bangla animate-in fade-in ${
+          <div className={`p-3 mb-4 rounded-xl flex items-center gap-2 text-xs font-bangla animate-in fade-in duration-150 ${
             statusMsg.type === 'success' 
               ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300' 
               : 'bg-rose-500/15 border border-rose-500/30 text-rose-300'
@@ -301,7 +296,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSignIn }) {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 mt-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+              className="w-full py-2.5 mt-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               <span>Save Changes</span>
@@ -364,7 +359,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSignIn }) {
                   type={showConfirmPass ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="নতুন পাসওয়ার্ড পুনরায় লিখুন"
+                  placeholder="নতুন পাসওয়ার্ড পুনরায় লিখুন"
                   className="w-full bg-[#141923] border border-white/10 focus:border-emerald-500 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white focus:outline-none transition"
                   required
                 />
@@ -381,28 +376,21 @@ export default function ProfileModal({ isOpen, onClose, onOpenSignIn }) {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 mt-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-bold text-xs shadow-lg transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+              className="w-full py-2.5 mt-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-bold text-xs shadow-lg transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
-              <span>Update Password & Re-login</span>
+              <span>Update Password</span>
             </button>
           </form>
         )}
 
-        {/* Tab 3: Session Termination */}
-        <div className="mt-5 pt-4 border-t border-white/10 flex justify-between items-center">
-          <span className="text-[11px] text-slate-400 font-bangla">সেশন সমাপ্ত করতে চান?</span>
-          <button
-            type="button"
-            onClick={() => {
-              logoutState();
-              onClose();
-            }}
-            className="py-2 px-4 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-400 hover:text-rose-300 text-xs font-semibold transition flex items-center gap-2 cursor-pointer active:scale-95"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Log Out</span>
-          </button>
+        {/* Tab 3: Session Termination using universal LogoutButton */}
+        <div className="mt-5 pt-4 border-t border-white/10">
+          <LogoutButton 
+            onBeforeLogout={onClose} 
+            label="Log Out from Account" 
+            className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/30 justify-center"
+          />
         </div>
 
       </div>

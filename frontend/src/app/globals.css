@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
 
 @theme inline {
   --color-background: #080b11;
@@ -7,32 +8,85 @@
   --font-bangla: var(--font-bangla), sans-serif;
 }
 
+/* -------------------------------------------------------------------------- */
+/* 1. Base Styles & Scrollbar Reset                                           */
+/* -------------------------------------------------------------------------- */
+html {
+  overflow-y: scroll;
+}
+
 body {
   background-color: #080b11;
   color: #f8fafc;
   font-family: var(--font-inter), sans-serif;
+  overflow-x: hidden;
 }
 
-/* কাস্টম বাংলা ফন্ট ইউটিলিটি ক্লাস */
 .font-bangla {
   font-family: var(--font-bangla), sans-serif !important;
 }
 
-/* Custom Ultra-Slim Dark Scrollbar */
+/* Custom Scrollbar */
 .custom-dark-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
-
 .custom-dark-scrollbar::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.02);
   border-radius: 9999px;
 }
-
 .custom-dark-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 9999px;
 }
-
 .custom-dark-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(52, 211, 153, 0.4); /* soft emerald hover */
+  background: rgba(52, 211, 153, 0.4);
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2. Core Transitions & Homepage Animations                                  */
+/* -------------------------------------------------------------------------- */
+@keyframes pageFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter-animation {
+  animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+body.logging-out {
+  opacity: 0 !important;
+  transform: scale(0.99) !important;
+  transition: opacity 0.2s ease, transform 0.2s ease !important;
+  pointer-events: none;
+}
+
+/* Hero Section Stagger Animations */
+@keyframes heroEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-title {
+  animation: heroEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+
+.animate-hero-search {
+  animation: heroEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+.animate-hero-filter {
+  animation: heroEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
 }

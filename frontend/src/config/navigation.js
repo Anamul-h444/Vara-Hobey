@@ -1,5 +1,6 @@
 import { 
   Home, 
+  LayoutDashboard,
   Building2, 
   PlusCircle, 
   Bookmark, 
@@ -9,6 +10,12 @@ import {
 
 export const navMenuItems = [
   { name: 'Home', icon: Home, href: '/' },
+  {
+    name: 'Dashboard',
+    icon: LayoutDashboard,
+    href: '/dashboard', 
+    authRequired: true, 
+  },
   { name: 'Rentals', icon: Building2, href: '/listings' },
   { name: 'Add Rent', icon: PlusCircle, href: '/add-listing' },
   { name: 'Saved', icon: Bookmark, href: '/saved' },

@@ -2,8 +2,7 @@
  * ==============================================================================
  * Project: Vara Hobe Web Application
  * File: src/app/components/common/AuthModal.js
- * Description: Unified Authentication Modal supporting Sign In, Multi-step
- *              Sign Up with OTP & Avatar Upload, Password Recovery, and Google OAuth.
+ * Description: Unified Authentication Modal with reliable direct success callback.
  * ==============================================================================
  */
 
@@ -42,9 +41,6 @@ import {
 } from '@/services/authService';
 import { useAuth } from '@/context/AuthContext';
 
-/* -------------------------------------------------------------------------- */
-/*                            Initial Form States                             */
-/* -------------------------------------------------------------------------- */
 const initialFormState = {
   name: '',
   email: '',
@@ -56,17 +52,12 @@ const initialFormState = {
   confirmPassword: '',
 };
 
-export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
+export default function AuthModal({ isOpen, onClose, mode = 'signin', setMode, onLoginSuccess }) {
   const { loginState } = useAuth();
 
-  /* -------------------------------------------------------------------------- */
-  /*                                Modal States                                */
-  /* -------------------------------------------------------------------------- */
-  const [mode, setMode] = useState(initialMode); // 'signin' | 'signup' | 'forgot'
-  const [signupStep, setSignupStep] = useState(1); // 1: Info -> 2: OTP -> 3: Success
-  const [forgotStep, setForgotStep] = useState(1); // 1: Email -> 2: OTP -> 3: New Pass -> 4: Success
+  const [signupStep, setSignupStep] = useState(1);
+  const [forgotStep, setForgotStep] = useState(1);
 
-  // Form Fields & Visibility
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
@@ -76,14 +67,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Avatar Upload States
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const fileInputRef = useRef(null);
 
-  /* -------------------------------------------------------------------------- */
-  /*                              Helper Methods                                */
-  /* -------------------------------------------------------------------------- */
   const resetFormState = () => {
     setFormData(initialFormState);
     setErrors({});
@@ -100,29 +87,30 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
     resetFormState();
     setSignupStep(1);
     setForgotStep(1);
-    setMode(newMode);
+    if (setMode) setMode(newMode);
   };
 
   useEffect(() => {
     if (isOpen) {
-      switchMode(initialMode);
+      setSignupStep(1);
+      setForgotStep(1);
+      resetFormState();
     }
-  }, [isOpen, initialMode]);
+  }, [isOpen]);
 
-  /* -------------------------------------------------------------------------- */
-  /*                          Google OAuth Integration                          */
-  /* -------------------------------------------------------------------------- */
   const handleGoogleLoginSuccess = async (tokenResponse) => {
     setIsLoading(true);
     setServerError('');
     try {
       const token = tokenResponse.access_token || tokenResponse.credential;
       const res = await googleAuthApi(token);
-      loginState(res.user);
+      const currentUser = res?.user || res?.data?.user || res?.data || res;
+      loginState(currentUser);
       resetFormState();
       onClose();
+      if (onLoginSuccess) onLoginSuccess(currentUser);
     } catch (err) {
-      setServerError(err.response?.data?.message || 'গুগল লগইন সম্পন্ন করা যায়নি!');
+      setServerError(err.response?.data?.message || 'গুগল লগইন সম্পন্ন করা যায়নি!');
     } finally {
       setIsLoading(false);
     }
@@ -130,17 +118,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
 
   const loginWithGoogle = useGoogleLogin({
     onSuccess: handleGoogleLoginSuccess,
-    onError: () => setServerError('গুগল অথেন্টিকেশন উইন্ডো বাতিল করা হয়েছে!'),
+    onError: () => setServerError('গুগল অথেন্টিকেশন উইন্ডো বাতিল করা হয়েছে!'),
   });
 
-  /* -------------------------------------------------------------------------- */
-  /*                           Input & File Handlers                            */
-  /* -------------------------------------------------------------------------- */
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate mime-types
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       setServerError('শুধুমাত্র JPG, JPEG, PNG এবং WEBP ফরম্যাটের ছবি আপলোড করুন!');
@@ -148,7 +132,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
       return;
     }
 
-    // Validate size limit (3 MB)
     if (file.size > 3 * 1024 * 1024) {
       setServerError('ছবির সাইজ সর্বোচ্চ ৩ মেগাবাইট (3 MB) হতে পারবে!');
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -167,9 +150,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
     if (serverError) setServerError('');
   };
 
-  /* -------------------------------------------------------------------------- */
-  /*                             Form Validation                                */
-  /* -------------------------------------------------------------------------- */
   const validate = () => {
     const newErrors = {};
 
@@ -183,7 +163,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
           newErrors.phone = 'সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন';
         }
         if (!formData.password || formData.password.length < 6) {
-          newErrors.password = 'কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড দিন';
+          newErrors.password = 'কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড দিন';
         }
       } else if (signupStep === 2) {
         if (!formData.signupOtp.trim() || formData.signupOtp.trim().length !== 6) {
@@ -205,10 +185,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
         }
       } else if (forgotStep === 3) {
         if (!formData.newPassword || formData.newPassword.length < 6) {
-          newErrors.newPassword = 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে';
+          newErrors.newPassword = 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে';
         }
         if (formData.newPassword !== formData.confirmPassword) {
-          newErrors.confirmPassword = 'উভয় পাসওয়ার্ড একই হতে হবে';
+          newErrors.confirmPassword = 'উভয় পাসওয়ার্ড একই হতে হবে';
         }
       }
       setErrors(newErrors);
@@ -217,7 +197,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
 
     if (mode === 'signin') {
       if (!formData.email.trim()) newErrors.email = 'ইমেইল অ্যাড্রেস আবশ্যক';
-      if (!formData.password) newErrors.password = 'পাসওয়ার্ড প্রদান করুন';
+      if (!formData.password) newErrors.password = 'পাসওয়ার্ড প্রদান করুন';
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
     }
@@ -225,9 +205,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
     return true;
   };
 
-  /* -------------------------------------------------------------------------- */
-  /*                            Form Submit Action                              */
-  /* -------------------------------------------------------------------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -242,9 +219,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
           setSignupStep(2);
         } else if (signupStep === 2) {
           const res = await registerUserApi(formData, avatarFile);
-          loginState(res.user);
+          const currentUser = res?.user || res?.data?.user || res?.data || res;
+          loginState(currentUser);
           setSignupStep(3);
-          resetFormState();
         }
       } else if (mode === 'forgot') {
         if (forgotStep === 1) {
@@ -256,19 +233,20 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
         } else if (forgotStep === 3) {
           await resetPasswordApi(formData);
           setForgotStep(4);
-          resetFormState();
         }
       } else if (mode === 'signin') {
         const res = await loginUserApi({
           email: formData.email,
           password: formData.password,
         });
-        loginState(res.user);
+        const currentUser = res?.user || res?.data?.user || res?.data || res;
+        loginState(currentUser);
         resetFormState();
         onClose();
+        if (onLoginSuccess) onLoginSuccess(currentUser);
       }
     } catch (err) {
-      setServerError(err.response?.data?.message || 'কিছু একটা সমস্যা হয়েছে, আবার চেষ্টা করুন!');
+      setServerError(err.response?.data?.message || 'কিছু একটা সমস্যা হয়েছে, আবার চেষ্টা করুন!');
     } finally {
       setIsLoading(false);
     }
@@ -278,28 +256,24 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-in fade-in cursor-pointer" 
+        className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 animate-in fade-in cursor-pointer" 
         onClick={onClose} 
       />
 
-      {/* Modal Container */}
-      <div className="relative z-10 w-full max-w-md bg-[#0c1019]/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.9)] animate-in zoom-in-95 duration-200">
+      <div className="relative z-10 w-full max-w-md bg-[#0c1019]/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.9)] duration-250 animate-in fade-in zoom-in-95 fill-mode-both">
         
-        {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+          className="absolute right-4 top-4 p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-all duration-200 cursor-pointer active:scale-90"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Modal Header */}
         <div className="text-center mb-5">
           <div className="inline-flex items-center gap-2 mb-2">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black shadow-md ${
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black shadow-md transition-all duration-300 ${
               mode === 'forgot'
                 ? 'bg-gradient-to-tr from-amber-500 to-orange-400 text-slate-950'
                 : 'bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950'
@@ -311,7 +285,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
             </span>
           </div>
 
-          <h3 className="text-lg font-bold text-white">
+          <h3 className="text-lg font-bold text-white transition-all duration-200">
             {mode === 'signup' 
               ? (signupStep === 1 ? 'Create Your Account' : signupStep === 2 ? 'Verify Email' : 'Registration Complete!') 
               : mode === 'forgot'
@@ -320,60 +294,59 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
           </h3>
         </div>
 
-        {/* Server Error Alert */}
         {serverError && (
-          <div className="p-3 mb-4 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center gap-2 text-rose-300 text-xs font-bangla animate-in fade-in">
+          <div className="p-3 mb-4 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center gap-2 text-rose-300 text-xs font-bangla duration-150 animate-in fade-in slide-in-from-top-1">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{serverError}</span>
           </div>
         )}
 
-        {/* Success View: Registration */}
         {mode === 'signup' && signupStep === 3 && (
-          <div className="text-center py-3 animate-in fade-in zoom-in-95">
+          <div className="text-center py-3 duration-200 animate-in fade-in zoom-in-95">
             <div className="w-12 h-12 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-3">
               <CheckCircle2 className="w-6 h-6" />
             </div>
             <h4 className="text-sm font-semibold text-white">স্বাগতম!</h4>
-            <p className="font-bangla text-xs text-slate-300 mt-1">আপনার অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।</p>
+            <p className="font-bangla text-xs text-slate-300 mt-1">আপনার অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।</p>
             <button
               type="button"
-              onClick={onClose}
-              className="mt-5 w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg cursor-pointer hover:opacity-90 transition active:scale-95"
+              onClick={() => {
+                resetFormState();
+                onClose();
+                if (onLoginSuccess) onLoginSuccess(formData);
+              }}
+              className="mt-5 w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg cursor-pointer hover:opacity-90 transition-all duration-200 active:scale-95"
             >
               Start Exploring
             </button>
           </div>
         )}
 
-        {/* Success View: Password Reset */}
         {mode === 'forgot' && forgotStep === 4 && (
-          <div className="text-center py-3 animate-in fade-in zoom-in-95">
+          <div className="text-center py-3 duration-200 animate-in fade-in zoom-in-95">
             <div className="w-12 h-12 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-3">
               <CheckCircle2 className="w-6 h-6" />
             </div>
-            <p className="font-bangla text-xs text-slate-300">পাসওয়ার্ড সফলভাবে আপডেট হয়েছে।</p>
+            <p className="font-bangla text-xs text-slate-300">পাসওয়ার্ড সফলভাবে আপডেট হয়েছে।</p>
             <button
               type="button"
               onClick={() => switchMode('signin')}
-              className="mt-5 w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg cursor-pointer hover:opacity-90 transition active:scale-95"
+              className="mt-5 w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg cursor-pointer hover:opacity-90 transition-all duration-200 active:scale-95"
             >
               Sign In Now
             </button>
           </div>
         )}
 
-        {/* Interactive Forms View */}
         {((mode === 'signup' && signupStep !== 3) || (mode === 'forgot' && forgotStep !== 4) || mode === 'signin') && (
-          <>
-            {/* Google Authentication Trigger */}
+          <div className="duration-200 animate-in fade-in">
             {((mode === 'signin') || (mode === 'signup' && signupStep === 1)) && (
               <>
                 <button
                   type="button"
                   onClick={() => loginWithGoogle()}
                   disabled={isLoading}
-                  className="w-full py-2.5 px-4 rounded-2xl bg-[#141923] hover:bg-[#1c2230] border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-center gap-3 transition active:scale-[0.98] mb-4 cursor-pointer"
+                  className="w-full py-2.5 px-4 rounded-2xl bg-[#141923] hover:bg-[#1c2230] border border-white/10 hover:border-white/20 text-slate-200 text-xs font-semibold flex items-center justify-center gap-3 transition-all duration-200 active:scale-[0.98] mb-4 cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -394,7 +367,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
             )}
 
             <form onSubmit={handleSubmit} noValidate className="space-y-3">
-              {/* Avatar Selector (Signup Step 1) */}
               {mode === 'signup' && signupStep === 1 && (
                 <div className="flex flex-col items-center mb-3">
                   <div className="relative group">
@@ -405,7 +377,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                         <User className="w-7 h-7 text-slate-500" />
                       )}
                     </div>
-                    <label className="absolute bottom-0 right-0 p-1.5 rounded-full bg-emerald-500 text-slate-950 cursor-pointer shadow-md hover:scale-110 transition active:scale-95">
+                    <label className="absolute bottom-0 right-0 p-1.5 rounded-full bg-emerald-500 text-slate-950 cursor-pointer shadow-md hover:scale-110 transition-all duration-200 active:scale-95">
                       <Camera className="w-3.5 h-3.5" />
                       <input 
                         ref={fileInputRef} 
@@ -420,9 +392,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                 </div>
               )}
 
-              {/* OTP Field (Signup Step 2) */}
               {mode === 'signup' && signupStep === 2 && (
-                <div>
+                <div className="duration-200 animate-in fade-in">
                   <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
                     6-Digit OTP Sent to {formData.email}
                   </label>
@@ -435,7 +406,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                       placeholder="• • • • • •"
                       value={formData.signupOtp}
                       onChange={handleChange}
-                      className="w-full bg-[#141923] border border-white/10 focus:border-emerald-500 rounded-xl pl-10 pr-3.5 py-2.5 text-center tracking-[0.4em] font-mono text-sm text-white focus:outline-none transition"
+                      className="w-full bg-[#141923] border border-white/10 focus:border-emerald-500 rounded-xl pl-10 pr-3.5 py-2.5 text-center tracking-[0.4em] font-mono text-sm text-white focus:outline-none transition-all duration-200"
                       autoFocus
                     />
                   </div>
@@ -443,9 +414,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                 </div>
               )}
 
-              {/* OTP Field (Forgot Password Step 2) */}
               {mode === 'forgot' && forgotStep === 2 && (
-                <div>
+                <div className="duration-200 animate-in fade-in">
                   <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
                     6-Digit Reset OTP Sent to {formData.email}
                   </label>
@@ -458,7 +428,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                       placeholder="• • • • • •"
                       value={formData.forgotOtp}
                       onChange={handleChange}
-                      className="w-full bg-[#141923] border border-white/10 focus:border-amber-400 rounded-xl pl-10 pr-3.5 py-2.5 text-center tracking-[0.4em] font-mono text-sm text-white focus:outline-none transition"
+                      className="w-full bg-[#141923] border border-white/10 focus:border-amber-400 rounded-xl pl-10 pr-3.5 py-2.5 text-center tracking-[0.4em] font-mono text-sm text-white focus:outline-none transition-all duration-200"
                       autoFocus
                     />
                   </div>
@@ -466,9 +436,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                 </div>
               )}
 
-              {/* New Password Inputs (Forgot Password Step 3) */}
               {mode === 'forgot' && forgotStep === 3 && (
-                <>
+                <div className="space-y-3 duration-200 animate-in fade-in">
                   <div>
                     <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">New Password</label>
                     <div className="relative flex items-center">
@@ -479,7 +448,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                         placeholder="কমপক্ষে ৬ অক্ষর"
                         value={formData.newPassword}
                         onChange={handleChange}
-                        className="w-full bg-[#141923] border border-white/10 focus:border-amber-400 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white focus:outline-none transition"
+                        className="w-full bg-[#141923] border border-white/10 focus:border-amber-400 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white focus:outline-none transition-all duration-200"
                       />
                       <button 
                         type="button" 
@@ -498,10 +467,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                       <input
                         type={showConfirmPassword ? 'text' : 'password'}
                         name="confirmPassword"
-                        placeholder="পাসওয়ার্ড নিশ্চিত করুন"
+                        placeholder="পাসওয়ার্ড নিশ্চিত করুন"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        className="w-full bg-[#141923] border border-white/10 focus:border-amber-400 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white focus:outline-none transition"
+                        className="w-full bg-[#141923] border border-white/10 focus:border-amber-400 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white focus:outline-none transition-all duration-200"
                       />
                       <button 
                         type="button" 
@@ -513,10 +482,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                     </div>
                     {errors.confirmPassword && <p className="text-[11px] text-rose-400 mt-1">{errors.confirmPassword}</p>}
                   </div>
-                </>
+                </div>
               )}
 
-              {/* Standard Text Inputs */}
               {((mode === 'signup' && signupStep === 1) || (mode === 'forgot' && forgotStep === 1) || mode === 'signin') && (
                 <>
                   {mode === 'signup' && (
@@ -530,7 +498,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                           placeholder="আপনার পূর্ণ নাম"
                           value={formData.name}
                           onChange={handleChange}
-                          className="w-full bg-[#141923] border border-white/10 focus:border-emerald-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none transition"
+                          className="w-full bg-[#141923] border border-white/10 focus:border-emerald-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none transition-all duration-200"
                         />
                       </div>
                       {errors.name && <p className="text-[11px] text-rose-400 mt-1">{errors.name}</p>}
@@ -547,7 +515,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                         placeholder="example@mail.com"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full bg-[#141923] border border-white/10 focus:border-emerald-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none transition"
+                        className="w-full bg-[#141923] border border-white/10 focus:border-emerald-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none transition-all duration-200"
                       />
                     </div>
                     {errors.email && <p className="text-[11px] text-rose-400 mt-1">{errors.email}</p>}
@@ -564,7 +532,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                           placeholder="017XXXXXXXX"
                           value={formData.phone}
                           onChange={handleChange}
-                          className="w-full bg-[#141923] border border-white/10 focus:border-emerald-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none transition"
+                          className="w-full bg-[#141923] border border-white/10 focus:border-emerald-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none transition-all duration-200"
                         />
                       </div>
                       {errors.phone && <p className="text-[11px] text-rose-400 mt-1">{errors.phone}</p>}
@@ -590,10 +558,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                         <input
                           type={showPassword ? 'text' : 'password'}
                           name="password"
-                          placeholder="আপনার পাসওয়ার্ড"
+                          placeholder="আপনার পাসওয়ার্ড"
                           value={formData.password}
                           onChange={handleChange}
-                          className="w-full bg-[#141923] border border-white/10 focus:border-emerald-500 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white focus:outline-none transition"
+                          className="w-full bg-[#141923] border border-white/10 focus:border-emerald-500 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white focus:outline-none transition-all duration-200"
                         />
                         <button 
                           type="button" 
@@ -609,11 +577,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                 </>
               )}
 
-              {/* Action Button */}
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full py-3 mt-3 rounded-xl text-slate-950 font-bold text-xs shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer ${
+                className={`w-full py-3 mt-3 rounded-xl text-slate-950 font-bold text-xs shadow-lg transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer ${
                   mode === 'forgot'
                     ? 'bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300'
                     : 'bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300'
@@ -639,13 +606,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
               </button>
             </form>
 
-            {/* Switch Mode Navigation */}
             <div className="text-center mt-5 text-xs text-slate-400">
               {mode === 'forgot' ? (
                 <button 
                   type="button" 
                   onClick={() => switchMode('signin')} 
-                  className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white cursor-pointer transition"
+                  className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white cursor-pointer transition-colors duration-200"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
                 </button>
@@ -662,7 +628,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                 </p>
               ) : (
                 <p>
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
                   <button 
                     type="button" 
                     onClick={() => switchMode('signup')} 
@@ -673,7 +639,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }) {
                 </p>
               )}
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

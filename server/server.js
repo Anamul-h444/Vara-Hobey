@@ -15,6 +15,7 @@ import multer from 'multer';
 // Internal Configurations & Routes
 import { connectDB } from './src/config/db.js';
 import authRoutes from './src/routes/authRoutes.js';
+import locationRoutes from './src/routes/locationRoutes.js'
 
 // Initialize Database Connection
 connectDB();
@@ -23,14 +24,20 @@ connectDB();
 const app = express();
 
 /* -------------------------------------------------------------------------- */
-/*                              Global Middleware                             */
+/*                                Global Middleware                           */
 /* -------------------------------------------------------------------------- */
-app.use(cors());
+// আপনি চাইলে সেন্ট্রাল CORS কনফিগারেশন এভাবেও দিতে পারেন (.env থেকে ফ্রন্টএন্ড ইউআরএল নিয়ে)
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* -------------------------------------------------------------------------- */
-/*                               API Endpoints                                */
+/*                                API Endpoints                               */
 /* -------------------------------------------------------------------------- */
 // Root Health Check Route
 app.get('/', (req, res) => {
@@ -39,9 +46,11 @@ app.get('/', (req, res) => {
 
 // Authentication & User Profile Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/locations', locationRoutes)
+
 
 /* -------------------------------------------------------------------------- */
-/*                       Global Error Handling Middleware                     */
+/*                        Global Error Handling Middleware                    */
 /* -------------------------------------------------------------------------- */
 app.use((err, req, res, next) => {
   // Multer Specific Upload Errors
@@ -49,7 +58,7 @@ app.use((err, req, res, next) => {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         success: false,
-        message: 'ছবির সাইজ অনেক বড়! সর্বোচ্চ ৩ মেগাবাইট (3 MB) সাইজের ছবি আপলোড করুন।',
+        message: 'ছবির সাইজ অনেক বড়! সর্বোচ্চ ৩ মেগাবাইট (3 MB) সাইজের ছবি আপলোড করুন।',
       });
     }
     return res.status(400).json({
@@ -62,7 +71,7 @@ app.use((err, req, res, next) => {
   if (err) {
     return res.status(400).json({
       success: false,
-      message: err.message || 'সার্ভারে সমস্যা হয়েছে!',
+      message: err.message || 'সার্ভারে সমস্যা হয়েছে!',
     });
   }
 
@@ -70,7 +79,7 @@ app.use((err, req, res, next) => {
 });
 
 /* -------------------------------------------------------------------------- */
-/*                               Server Bootup                                */
+/*                                Server Bootup                               */
 /* -------------------------------------------------------------------------- */
 const PORT = process.env.PORT || 5000;
 

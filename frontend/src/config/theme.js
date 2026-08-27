@@ -11,11 +11,12 @@ export const theme = {
     textBody: "text-slate-400",
   },
   typography: {
-    heroTitle: "text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white",
-    subTitle: "text-slate-400 text-sm sm:text-base md:text-lg max-w-2xl mx-auto",
+    heroTitle: "text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white", // ডেস্কটপের জন্য সাইজ বাড়িয়ে দেওয়া হয়েছে
+    subTitle: "text-slate-400 text-base sm:text-lg md:text-xl max-w-2xl mx-auto", // বড় স্ক্রিনে আরও রিডেবল করা হয়েছে
+    sectionTitle: "text-2xl sm:text-3xl lg:text-4xl font-bold text-white",
+    bodyText: "text-sm sm:text-base text-slate-400",
   }
 };
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -28,6 +29,9 @@ module.exports = {
       animation: {
         'spin-slow': 'spin 5s linear infinite',
       },
+      fontSize: {
+        'hero-desktop': ['3.75rem', { lineHeight: '1.1' }],
+      }
     },
   },
   plugins: [],

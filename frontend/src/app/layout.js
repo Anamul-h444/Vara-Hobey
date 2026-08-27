@@ -3,7 +3,7 @@
  * Project: Vara Hobe Web Application
  * File: src/app/layout.js
  * Description: Root application layout configuring global Google & Bangla fonts,
- *              meta tags, Google OAuth provider, and global Auth context.
+ *              meta tags, global entrance animations, and Auth providers.
  * ==============================================================================
  */
 
@@ -39,14 +39,14 @@ export const metadata = {
 };
 
 /* -------------------------------------------------------------------------- */
-/*                             Root Layout Component                          */
+/*                            Root Layout Component                           */
 /* -------------------------------------------------------------------------- */
 export default function RootLayout({ children }) {
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
   return (
     <html lang="bn" className={`${inter.variable} ${hindSiliguri.variable}`}>
-      <body className="bg-[#080b11] text-slate-100 antialiased selection:bg-emerald-500/30 selection:text-emerald-300">
+      <body className="bg-[#080b11] text-slate-100 antialiased selection:bg-emerald-500/30 selection:text-emerald-300 page-enter-animation">
         <GoogleOAuthProvider clientId={clientId}>
           <AuthProvider>
             {children}

@@ -36,7 +36,7 @@ export const protect = async (req, res, next) => {
       if (!req.user) {
         return res.status(401).json({
           success: false,
-          message: 'ইউজার খুঁজে পাওয়া যায়নি!',
+          message: 'ইউজার খুঁজে পাওয়া যায়নি!',
         });
       }
 
@@ -45,7 +45,7 @@ export const protect = async (req, res, next) => {
       console.error('JWT Auth Middleware Error:', error.message);
       return res.status(401).json({
         success: false,
-        message: 'অননুমোদিত রিকোয়েস্ট, টোকেন সঠিক নয়!',
+        message: 'অননুমোদিত রিকোয়েস্ট, টোকেন সঠিক নয়!',
       });
     }
   }
@@ -54,7 +54,26 @@ export const protect = async (req, res, next) => {
   if (!token) {
     return res.status(401).json({
       success: false,
-      message: 'অননুমোদিত রিকোয়েস্ট, কোনো টোকেন দেওয়া হয়নি!',
+      message: 'অননুমোদিত রিকোয়েস্ট, কোনো টোকেন দেওয়া হয়নি!',
+    });
+  }
+};
+
+/**
+ * Check if the authenticated user is an Admin
+ */
+export const adminOnly = (req, res, next) => {
+  // চেক করা হচ্ছে roles অ্যারেতে 'admin' আছে কি না অথবা role স্ট্রিং 'admin' কি না
+  const isAdmin = 
+    (Array.isArray(req.user?.roles) && req.user.roles.includes('admin')) || 
+    req.user?.role === 'admin';
+
+  if (req.user && isAdmin) {
+    return next();
+  } else {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied! Admin only route.',
     });
   }
 };
