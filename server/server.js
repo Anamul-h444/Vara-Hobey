@@ -7,15 +7,17 @@
  * ==============================================================================
  */
 
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import multer from 'multer';
+import "dotenv/config";
+import express from "express";
+import cors from "cors";
+import multer from "multer";
 
 // Internal Configurations & Routes
-import { connectDB } from './src/config/db.js';
-import authRoutes from './src/routes/authRoutes.js';
-import locationRoutes from './src/routes/locationRoutes.js'
+import { connectDB } from "./src/config/db.js";
+import authRoutes from "./src/routes/authRoutes.js";
+import locationRoutes from "./src/routes/locationRoutes.js";
+import rentTypeRoutes from "./src/routes/rentTypeRoutes.js";
+import flatRoutes from "./src/routes/flatRoutes.js";
 
 // Initialize Database Connection
 connectDB();
@@ -28,7 +30,7 @@ const app = express();
 /* -------------------------------------------------------------------------- */
 // আপনি চাইলে সেন্ট্রাল CORS কনফিগারেশন এভাবেও দিতে পারেন (.env থেকে ফ্রন্টএন্ড ইউআরএল নিয়ে)
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || '*',
+  origin: process.env.FRONTEND_URL || "*",
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -40,14 +42,15 @@ app.use(express.urlencoded({ extended: true }));
 /*                                API Endpoints                               */
 /* -------------------------------------------------------------------------- */
 // Root Health Check Route
-app.get('/', (req, res) => {
-  res.send('🚀 Vara Hobe API Server Running...');
+app.get("/", (req, res) => {
+  res.send("🚀 Vara Hobe API Server Running...");
 });
 
 // Authentication & User Profile Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/locations', locationRoutes)
-
+app.use("/api/auth", authRoutes);
+app.use("/api/locations", locationRoutes);
+app.use("/api/rent-types", rentTypeRoutes);
+app.use("/api/flats", flatRoutes);
 
 /* -------------------------------------------------------------------------- */
 /*                        Global Error Handling Middleware                    */
@@ -55,10 +58,11 @@ app.use('/api/locations', locationRoutes)
 app.use((err, req, res, next) => {
   // Multer Specific Upload Errors
   if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
+    if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
         success: false,
-        message: 'ছবির সাইজ অনেক বড়! সর্বোচ্চ ৩ মেগাবাইট (3 MB) সাইজের ছবি আপলোড করুন।',
+        message:
+          "ছবির সাইজ অনেক বড়! সর্বোচ্চ ৩ মেগাবাইট (3 MB) সাইজের ছবি আপলোড করুন।",
       });
     }
     return res.status(400).json({
@@ -71,7 +75,7 @@ app.use((err, req, res, next) => {
   if (err) {
     return res.status(400).json({
       success: false,
-      message: err.message || 'সার্ভারে সমস্যা হয়েছে!',
+      message: err.message || "সার্ভারে সমস্যা হয়েছে!",
     });
   }
 

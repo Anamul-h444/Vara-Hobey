@@ -6,18 +6,18 @@
  * ==============================================================================
  */
 
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Name is required'],
+      required: [true, "Name is required"],
       trim: true,
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, "Email is required"],
       unique: true,
       lowercase: true,
       trim: true,
@@ -32,12 +32,12 @@ const userSchema = new mongoose.Schema(
     // Phone number is optional on initial Google sign-in; updated later from profile
     phone: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
     avatar: {
       type: String,
-      default: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+      default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
     },
     googleId: {
       type: String,
@@ -45,17 +45,33 @@ const userSchema = new mongoose.Schema(
     },
     roles: {
       type: [String],
-      enum: ['renter', 'owner', 'admin', 'tenant', 'landlord', 'user'],
-      default: ['tenant'],
+      enum: ["renter", "owner", "admin", "tenant", "landlord", "user"],
+      default: ["tenant"],
     },
     isVerified: {
       type: Boolean,
       default: false,
     },
+
+    // নতুন যুক্ত হলো: ইউজারের অ্যাড ও রেন্ট সাকসেস ট্র্যাকিংয়ের জন্য স্ট্যাটস
+    stats: {
+      totalAdsPosted: {
+        type: Number,
+        default: 0,
+      },
+      successfulRents: {
+        type: Number,
+        default: 0,
+      },
+      totalDeletedAds: {
+        type: Number,
+        default: 0,
+      },
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-export default mongoose.models.User || mongoose.model('User', userSchema);
+export default mongoose.models.User || mongoose.model("User", userSchema);

@@ -6,16 +6,21 @@
  * ==============================================================================
  */
 
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Building2, X } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import LogoutButton from '@/app/components/common/LogoutButton';
+import React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Building2, X } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import LogoutButton from "@/app/components/common/LogoutButton";
 
-export default function DashboardMobileHeader({ navItems = [], roleLabel = 'Dashboard', isOpen, onClose }) {
+export default function UserDashboardMobileHeader({
+  navItems = [],
+  roleLabel = "Dashboard",
+  isOpen,
+  onClose,
+}) {
   const pathname = usePathname();
   const { user } = useAuth();
 
@@ -23,21 +28,23 @@ export default function DashboardMobileHeader({ navItems = [], roleLabel = 'Dash
     <>
       {/* Backdrop */}
       {isOpen && (
-        <div 
+        <div
           className="lg:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 animate-in fade-in duration-300 cursor-pointer"
           onClick={onClose}
         />
       )}
 
       {/* Slide-out Drawer */}
-      <div className={`lg:hidden fixed top-0 right-0 bottom-0 w-72 bg-[#0c1019] border-l border-white/10 z-50 p-5 flex flex-col justify-between transition-transform duration-300 ease-out shadow-2xl ${
-        isOpen ? 'translate-x-0' : 'translate-x-full'
-      }`}>
+      <div
+        className={`lg:hidden fixed top-0 right-0 bottom-0 w-72 bg-[#0c1019] border-l border-white/10 z-50 p-5 flex flex-col justify-between transition-transform duration-300 ease-out shadow-2xl ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
         <div>
           {/* Top Branding (Logo & App Name) */}
           <div className="flex items-center justify-between pb-6 border-b border-white/10">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               onClick={onClose}
               className="flex items-center gap-2 group cursor-pointer"
             >
@@ -48,7 +55,7 @@ export default function DashboardMobileHeader({ navItems = [], roleLabel = 'Dash
                 VARA<span className="text-emerald-400">HOBE</span>
               </span>
             </Link>
-            
+
             <button
               type="button"
               onClick={onClose}
@@ -71,8 +78,8 @@ export default function DashboardMobileHeader({ navItems = [], roleLabel = 'Dash
                   onClick={onClose}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer ${
                     isActive
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                      : "text-slate-400 hover:text-white hover:bg-white/[0.04]"
                   }`}
                 >
                   <div className="flex items-center gap-3">

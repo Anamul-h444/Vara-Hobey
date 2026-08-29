@@ -6,74 +6,141 @@
  * ==============================================================================
  */
 
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 /**
- * Middleware to verify Bearer JWT token and attach user to request object
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
+ * ==============================================================================
+ * Protect Middleware
+ * ==============================================================================
+ * Verifies Bearer JWT and attaches the authenticated user to req.user.
+ * ==============================================================================
  */
 export const protect = async (req, res, next) => {
-  let token;
+  try {
+    const authHeader = req.headers.authorization;
 
-  // Check for Bearer token in the Authorization header
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    try {
-      // Extract token string after 'Bearer '
-      token = req.headers.authorization.split(' ')[1];
+    // --------------------------------------------------------------------------
+    // Check Authorization header
+    // --------------------------------------------------------------------------
 
-      // Verify JWT token signature with secret
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      // Fetch user profile from database excluding password hash
-      req.user = await User.findById(decoded.id).select('-password');
-
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          message: 'ইউজার খুঁজে পাওয়া যায়নি!',
-        });
-      }
-
-      return next();
-    } catch (error) {
-      console.error('JWT Auth Middleware Error:', error.message);
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         success: false,
-        message: 'অননুমোদিত রিকোয়েস্ট, টোকেন সঠিক নয়!',
+        message: "অননুমোদিত রিকোয়েস্ট, কোনো বৈধ টোকেন দেওয়া হয়নি!",
       });
     }
-  }
 
-  // Fallback if no token is provided
-  if (!token) {
+    // --------------------------------------------------------------------------
+    // Extract token
+    // --------------------------------------------------------------------------
+
+    const token = authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "অননুমোদিত রিকোয়েস্ট, টোকেন পাওয়া যায়নি!",
+      });
+    }
+
+    // --------------------------------------------------------------------------
+    // JWT verification
+    // --------------------------------------------------------------------------
+
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is not configured in environment variables.");
+
+      return res.status(500).json({
+        success: false,
+        message: "Server authentication configuration is missing.",
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // --------------------------------------------------------------------------
+    // Support common JWT payload formats
+    // --------------------------------------------------------------------------
+
+    const userId = decoded.id || decoded.userId || decoded._id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "অননুমোদিত রিকোয়েস্ট, টোকেনের user ID পাওয়া যায়নি!",
+      });
+    }
+
+    // --------------------------------------------------------------------------
+    // Find authenticated user
+    // --------------------------------------------------------------------------
+
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "ইউজার খুঁজে পাওয়া যায়নি!",
+      });
+    }
+
+    // --------------------------------------------------------------------------
+    // Attach user to request
+    // --------------------------------------------------------------------------
+
+    req.user = user;
+
+    return next();
+  } catch (error) {
+    console.error("JWT Auth Middleware Error:", error.message);
+
+    // Expired token
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "সেশন শেষ হয়ে গেছে। অনুগ্রহ করে আবার লগইন করুন!",
+      });
+    }
+
+    // Invalid token
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        success: false,
+        message: "অননুমোদিত রিকোয়েস্ট, টোকেন সঠিক নয়!",
+      });
+    }
+
     return res.status(401).json({
       success: false,
-      message: 'অননুমোদিত রিকোয়েস্ট, কোনো টোকেন দেওয়া হয়নি!',
+      message: "অননুমোদিত রিকোয়েস্ট, authentication ব্যর্থ হয়েছে!",
     });
   }
 };
 
 /**
- * Check if the authenticated user is an Admin
+ * ==============================================================================
+ * Admin Only Middleware
+ * ==============================================================================
  */
 export const adminOnly = (req, res, next) => {
-  // চেক করা হচ্ছে roles অ্যারেতে 'admin' আছে কি না অথবা role স্ট্রিং 'admin' কি না
-  const isAdmin = 
-    (Array.isArray(req.user?.roles) && req.user.roles.includes('admin')) || 
-    req.user?.role === 'admin';
+  const isAdmin =
+    (Array.isArray(req.user?.roles) && req.user.roles.includes("admin")) ||
+    req.user?.role === "admin";
 
-  if (req.user && isAdmin) {
-    return next();
-  } else {
-    return res.status(403).json({
+  if (!req.user) {
+    return res.status(401).json({
       success: false,
-      message: 'Access denied! Admin only route.',
+      message: "অননুমোদিত রিকোয়েস্ট, আগে লগইন করুন!",
     });
   }
+
+  if (!isAdmin) {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied! Admin only route.",
+    });
+  }
+
+  return next();
 };

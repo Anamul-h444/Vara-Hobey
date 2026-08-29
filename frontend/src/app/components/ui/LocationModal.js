@@ -3,23 +3,7 @@
  * Project: Vara Hobe Web Application
  * File: src/app/components/ui/LocationModal.jsx
  * Description:
- * Dynamic location selection modal with smooth transitions and animations.
- *
- * Hierarchy:
- *
- * Division
- *    ↓ division_id
- * District
- *    ↓ district_id
- * Upazila
- *    ↓ local_body_id
- * Zone / Union / Municipality
- *    ↓ zone_id
- * Area / Village / Mahalla
- *
- * IMPORTANT:
- * No location ID is hardcoded.
- * All parent-child relationships come from the database.
+ * Dynamic location selection modal with increased font size for Bengali location names.
  * ==============================================================================
  */
 
@@ -62,7 +46,6 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
   // ============================================================================
 
   const [loading, setLoading] = useState(false);
-
   const [error, setError] = useState("");
 
   // ============================================================================
@@ -70,44 +53,20 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
   // ============================================================================
 
   const [divisions, setDivisions] = useState([]);
-
   const [districts, setDistricts] = useState([]);
-
   const [upazilas, setUpazilas] = useState([]);
-
   const [unionZones, setUnionZones] = useState([]);
-
   const [areas, setAreas] = useState([]);
 
   // ============================================================================
   // SELECTED LOCATION
   // ============================================================================
 
-  const [division, setDivision] = useState({
-    id: "",
-    name: "",
-  });
-
-  const [district, setDistrict] = useState({
-    id: "",
-    name: "",
-  });
-
-  const [upazila, setUpazila] = useState({
-    id: "",
-    name: "",
-  });
-
-  const [unionZone, setUnionZone] = useState({
-    id: "",
-    name: "",
-    type: "",
-  });
-
-  const [area, setArea] = useState({
-    id: "",
-    name: "",
-  });
+  const [division, setDivision] = useState({ id: "", name: "" });
+  const [district, setDistrict] = useState({ id: "", name: "" });
+  const [upazila, setUpazila] = useState({ id: "", name: "" });
+  const [unionZone, setUnionZone] = useState({ id: "", name: "", type: "" });
+  const [area, setArea] = useState({ id: "", name: "" });
 
   // ============================================================================
   // GENERIC FETCH FUNCTION
@@ -116,12 +75,7 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
   const fetchLocations = async (params = {}) => {
     try {
       setLoading(true);
-
       setError("");
-
-      // ------------------------------------------------------------------------
-      // Build query dynamically
-      // ------------------------------------------------------------------------
 
       const searchParams = new URLSearchParams();
 
@@ -136,14 +90,7 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
       });
 
       const queryString = searchParams.toString();
-
       const url = queryString ? `${API_URL}?${queryString}` : API_URL;
-
-      console.log("[Location API] Request:", url);
-
-      // ------------------------------------------------------------------------
-      // Fetch
-      // ------------------------------------------------------------------------
 
       const response = await fetch(url, {
         method: "GET",
@@ -153,21 +100,11 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
         cache: "no-store",
       });
 
-      // ------------------------------------------------------------------------
-      // HTTP error
-      // ------------------------------------------------------------------------
-
       if (!response.ok) {
         throw new Error(`Server returned HTTP ${response.status}`);
       }
 
       const result = await response.json();
-
-      console.log("[Location API] Response:", result);
-
-      // ------------------------------------------------------------------------
-      // API error
-      // ------------------------------------------------------------------------
 
       if (!result.success) {
         throw new Error(result.message || "লোকেশন ডেটা লোড করা যায়নি");
@@ -176,9 +113,7 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
       return Array.isArray(result.data) ? result.data : [];
     } catch (err) {
       console.error("[Location API] Error:", err);
-
       setError(err.message || "লোকেশন ডেটা লোড করতে সমস্যা হয়েছে");
-
       return [];
     } finally {
       setLoading(false);
@@ -191,57 +126,22 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
 
   const resetAll = () => {
     setStep("division");
-
     setError("");
-
-    // --------------------------------------------------------------------------
-    // Clear lists
-    // --------------------------------------------------------------------------
-
     setDivisions([]);
-
     setDistricts([]);
-
     setUpazilas([]);
-
     setUnionZones([]);
-
     setAreas([]);
 
-    // --------------------------------------------------------------------------
-    // Clear selections
-    // --------------------------------------------------------------------------
-
-    setDivision({
-      id: "",
-      name: "",
-    });
-
-    setDistrict({
-      id: "",
-      name: "",
-    });
-
-    setUpazila({
-      id: "",
-      name: "",
-    });
-
-    setUnionZone({
-      id: "",
-      name: "",
-      type: "",
-    });
-
-    setArea({
-      id: "",
-      name: "",
-    });
+    setDivision({ id: "", name: "" });
+    setDistrict({ id: "", name: "" });
+    setUpazila({ id: "", name: "" });
+    setUnionZone({ id: "", name: "", type: "" });
+    setArea({ id: "", name: "" });
   };
 
   // ============================================================================
-  // MODAL OPEN
-  // Load divisions
+  // MODAL OPEN - Load divisions
   // ============================================================================
 
   useEffect(() => {
@@ -251,11 +151,7 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
 
     const loadDivisions = async () => {
       resetAll();
-
-      const data = await fetchLocations({
-        type: "division",
-      });
-
+      const data = await fetchLocations({ type: "division" });
       setDivisions(data);
     };
 
@@ -268,57 +164,27 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
 
   const handleDivisionClick = async (item) => {
     const divisionId = item?._id;
-
-    if (!divisionId) {
-      console.error("Division _id পাওয়া যায়নি:", item);
-
-      setError("এই বিভাগের সঠিক ID পাওয়া যায়নি।");
-
-      return;
-    }
-
-    console.log("[Location] Selected Division:", divisionId);
+    if (!divisionId) return;
 
     setDivision({
       id: divisionId,
       name: item.name_bn || item.name_en || "",
     });
 
-    setDistrict({
-      id: "",
-      name: "",
-    });
-
-    setUpazila({
-      id: "",
-      name: "",
-    });
-
-    setUnionZone({
-      id: "",
-      name: "",
-      type: "",
-    });
-
-    setArea({
-      id: "",
-      name: "",
-    });
+    // Reset lower levels
+    setDistrict({ id: "", name: "" });
+    setUpazila({ id: "", name: "" });
+    setUnionZone({ id: "", name: "", type: "" });
+    setArea({ id: "", name: "" });
 
     setDistricts([]);
-
     setUpazilas([]);
-
     setUnionZones([]);
-
     setAreas([]);
 
     setStep("district");
 
-    const data = await fetchLocations({
-      division_id: divisionId,
-    });
-
+    const data = await fetchLocations({ division_id: divisionId });
     setDistricts(data);
   };
 
@@ -328,96 +194,51 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
 
   const handleDistrictClick = async (item) => {
     const districtId = item?._id;
-
-    if (!districtId) {
-      console.error("District _id পাওয়া যায়নি:", item);
-
-      setError("এই জেলার সঠিক ID পাওয়া যায়নি।");
-
-      return;
-    }
-
-    console.log("[Location] Selected District:", districtId);
+    if (!districtId) return;
 
     setDistrict({
       id: districtId,
       name: item.name_bn || item.name_en || "",
     });
 
-    setUpazila({
-      id: "",
-      name: "",
-    });
-
-    setUnionZone({
-      id: "",
-      name: "",
-      type: "",
-    });
-
-    setArea({
-      id: "",
-      name: "",
-    });
+    // Reset lower levels
+    setUpazila({ id: "", name: "" });
+    setUnionZone({ id: "", name: "", type: "" });
+    setArea({ id: "", name: "" });
 
     setUpazilas([]);
-
     setUnionZones([]);
-
     setAreas([]);
 
     setStep("upazila");
 
-    const data = await fetchLocations({
-      district_id: districtId,
-    });
-
+    const data = await fetchLocations({ district_id: districtId });
     setUpazilas(data);
   };
 
   // ============================================================================
-  // UPAZILA / LOCAL BODY CLICK
+  // UPAZILA CLICK
   // ============================================================================
 
   const handleUpazilaClick = async (item) => {
     const localBodyId = item?._id;
-
-    if (!localBodyId) {
-      console.error("Local Body _id পাওয়া যায়নি:", item);
-
-      setError("এই লোকাল বডির সঠিক ID পাওয়া যায়নি।");
-
-      return;
-    }
-
-    console.log("[Location] Selected Local Body:", localBodyId);
+    if (!localBodyId) return;
 
     setUpazila({
       id: localBodyId,
       name: item.name_bn || item.name_en || "",
     });
 
-    setUnionZone({
-      id: "",
-      name: "",
-      type: "",
-    });
-
-    setArea({
-      id: "",
-      name: "",
-    });
+    // Reset lower levels
+    setUnionZone({ id: "", name: "", type: "" });
+    setArea({ id: "", name: "" });
 
     setUnionZones([]);
-
     setAreas([]);
 
     setStep("unionZone");
 
-    const data = await fetchLocations({
-      local_body_id: localBodyId,
-    });
-
+    const data = await fetchLocations({ local_body_id: localBodyId });
     setUnionZones(data);
   };
 
@@ -426,68 +247,23 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
   // ============================================================================
 
   const handleUnionZoneClick = async (item) => {
-    try {
-      const zoneId = item?._id;
+    const zoneId = item?._id;
+    if (!zoneId) return;
 
-      if (!zoneId) {
-        console.error("Zone/Union-এর _id পাওয়া যায়নি:", item);
+    setUnionZone({
+      id: zoneId,
+      name: item.name_bn || item.name_en || "",
+      type: item.type || "",
+    });
 
-        setError("এই লোকেশনের সঠিক ID পাওয়া যায়নি।");
-        return;
-      }
+    // Reset lower level
+    setArea({ id: "", name: "" });
+    setAreas([]);
 
-      setUnionZone({
-        id: zoneId,
-        name: item.name_bn || item.name_en || "",
-        type: item.type || "",
-      });
+    setStep("area");
 
-      setArea({
-        id: "",
-        name: "",
-      });
-
-      setAreas([]);
-
-      setError("");
-
-      setStep("area");
-
-      setLoading(true);
-
-      const response = await fetch(
-        `${API_URL}?zone_id=${encodeURIComponent(zoneId)}`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
-          cache: "no-store",
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`Server returned HTTP ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.message || "Area data load failed");
-      }
-
-      const areaData = Array.isArray(result.data) ? result.data : [];
-
-      setAreas(areaData);
-    } catch (error) {
-      console.error("Failed to load areas:", error);
-
-      setAreas([]);
-
-      setError(error.message || "এরিয়া লোড করতে সমস্যা হয়েছে");
-    } finally {
-      setLoading(false);
-    }
+    const areaData = await fetchLocations({ zone_id: zoneId });
+    setAreas(areaData);
   };
 
   // ============================================================================
@@ -496,16 +272,7 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
 
   const handleAreaClick = (item) => {
     const areaId = item?._id;
-
-    if (!areaId) {
-      console.error("Area _id পাওয়া যায়নি:", item);
-
-      setError("এই এলাকার সঠিক ID পাওয়া যায়নি।");
-
-      return;
-    }
-
-    console.log("[Location] Selected Area:", areaId);
+    if (!areaId) return;
 
     setArea({
       id: areaId,
@@ -516,101 +283,29 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
   };
 
   // ============================================================================
-  // BACK NAVIGATION
-  // ============================================================================
-
-  const handleBack = () => {
-    setError("");
-
-    if (step === "area") {
-      setArea({
-        id: "",
-        name: "",
-      });
-
-      setStep("unionZone");
-
-      return;
-    }
-
-    if (step === "unionZone") {
-      setUnionZone({
-        id: "",
-        name: "",
-        type: "",
-      });
-
-      setUnionZones([]);
-
-      setStep("upazila");
-
-      return;
-    }
-
-    if (step === "upazila") {
-      setUpazila({
-        id: "",
-        name: "",
-      });
-
-      setUpazilas([]);
-
-      setStep("district");
-
-      return;
-    }
-
-    if (step === "district") {
-      setDistrict({
-        id: "",
-        name: "",
-      });
-
-      setDistricts([]);
-
-      setStep("division");
-
-      return;
-    }
-  };
-
-  // ============================================================================
   // BREADCRUMB NAVIGATION
   // ============================================================================
 
   const goToDivision = () => {
     setError("");
-
     setStep("division");
   };
 
   const goToDistrict = () => {
-    if (!division.id) {
-      return;
-    }
-
+    if (!division.id) return;
     setError("");
-
     setStep("district");
   };
 
   const goToUpazila = () => {
-    if (!district.id) {
-      return;
-    }
-
+    if (!district.id) return;
     setError("");
-
     setStep("upazila");
   };
 
   const goToUnionZone = () => {
-    if (!upazila.id) {
-      return;
-    }
-
+    if (!upazila.id) return;
     setError("");
-
     setStep("unionZone");
   };
 
@@ -620,22 +315,17 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
 
   const handleReset = async () => {
     resetAll();
-
-    const data = await fetchLocations({
-      type: "division",
-    });
-
+    const data = await fetchLocations({ type: "division" });
     setDivisions(data);
   };
 
   // ============================================================================
-  // DONE
+  // DONE (Flexible check: allows saving whichever level is selected)
   // ============================================================================
 
   const handleDone = () => {
-    if (!area.id) {
-      setError("অনুগ্রহ করে একটি এলাকা নির্বাচন করুন।");
-
+    if (!division.id) {
+      setError("অনুগ্রহ করে অন্তত একটি বিভাগ নির্বাচন করুন।");
       return;
     }
 
@@ -644,23 +334,19 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
         id: division.id,
         name: division.name,
       },
-
       district: {
         id: district.id,
         name: district.name,
       },
-
       upazila: {
         id: upazila.id,
         name: upazila.name,
       },
-
       unionZone: {
         id: unionZone.id,
         name: unionZone.name,
         type: unionZone.type,
       },
-
       area: {
         id: area.id,
         name: area.name,
@@ -668,9 +354,7 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
     };
 
     console.log("[Location] Final Selection:", selectedLocation);
-
     onSelectLocation(selectedLocation);
-
     onClose();
   };
 
@@ -680,28 +364,20 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
 
   const handleClose = () => {
     setError("");
-
     onClose();
   };
-
-  // ============================================================================
-  // DO NOT RENDER WHEN CLOSED
-  // ============================================================================
 
   if (!isOpen) {
     return null;
   }
 
   // ============================================================================
-  // GENERIC LOCATION CARD
+  // GENERIC LOCATION BUTTON RENDERER
   // ============================================================================
 
   const renderLocationButton = ({ item, icon: Icon, selected, onClick }) => {
     const itemId = item?._id;
-
-    if (!itemId) {
-      return null;
-    }
+    if (!itemId) return null;
 
     return (
       <button
@@ -715,35 +391,31 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
           rounded-2xl
           border
           text-left
-          text-xs
-          font-medium
           transition-all duration-300 ease-in-out
           transform hover:-translate-y-0.5
           active:scale-[0.98]
           cursor-pointer
           ${
             selected
-              ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300 font-bold shadow-lg shadow-emerald-500/10"
+              ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-lg shadow-emerald-500/10"
               : "bg-[#121929] border-white/5 text-slate-200 hover:border-emerald-500/30 hover:bg-[#161f33] hover:shadow-md hover:shadow-black/40"
           }
         `}
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <Icon className="w-4 h-4 text-emerald-400 shrink-0 transition-transform duration-300 group-hover:scale-110" />
-
           <div className="min-w-0">
-            <div className="truncate">
+            {/* বাংলা লেখার সাইজ text-xs থেকে বাড়িয়ে text-sm করা হলো এবং font-semibold দেওয়া হলো */}
+            <div className="font-bangla text-sm font-semibold truncate">
               {item.name_bn || item.name_en || "Unnamed"}
             </div>
-
             {item.name_en && item.name_bn && (
-              <div className="text-[10px] text-slate-500 font-normal truncate">
+              <div className="text-[11px] text-slate-400 font-normal truncate mt-0.5">
                 {item.name_en}
               </div>
             )}
           </div>
         </div>
-
         <div className="flex items-center gap-2 shrink-0">
           {selected && (
             <Check className="w-4 h-4 text-emerald-400 animate-in fade-in zoom-in duration-200" />
@@ -753,25 +425,14 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
     );
   };
 
-  // ============================================================================
-  // EMPTY STATE
-  // ============================================================================
-
   const renderEmptyState = (message) => {
-    if (loading) {
-      return null;
-    }
-
+    if (loading) return null;
     return (
       <div className="col-span-1 sm:col-span-2 text-center py-10 animate-in fade-in duration-300">
         <div className="text-xs text-slate-400">{message}</div>
       </div>
     );
   };
-
-  // ============================================================================
-  // RENDER
-  // ============================================================================
 
   return (
     <div
@@ -806,10 +467,7 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
           animate-in zoom-in-95 duration-300
         "
       >
-        {/* =====================================================================
-            HEADER
-        ===================================================================== */}
-
+        {/* HEADER */}
         <div
           className="
             flex
@@ -837,7 +495,6 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
             >
               <MapPin className="w-4 h-4" />
             </div>
-
             <div>
               <h3 className="text-sm font-bold text-white">
                 লোকেশন নির্বাচন করুন
@@ -864,10 +521,7 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
           </button>
         </div>
 
-        {/* =====================================================================
-            BREADCRUMB
-        ===================================================================== */}
-
+        {/* BREADCRUMB */}
         <div
           className="
             flex
@@ -884,7 +538,6 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
           "
         >
           {/* Division */}
-
           <button
             type="button"
             onClick={goToDivision}
@@ -909,11 +562,9 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
           </button>
 
           {/* District */}
-
           {division.id && (
             <>
               <ChevronRight className="w-3 h-3 text-slate-600 shrink-0 self-center" />
-
               <button
                 type="button"
                 onClick={goToDistrict}
@@ -940,11 +591,9 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
           )}
 
           {/* Upazila */}
-
           {district.id && (
             <>
               <ChevronRight className="w-3 h-3 text-slate-600 shrink-0 self-center" />
-
               <button
                 type="button"
                 onClick={goToUpazila}
@@ -971,11 +620,9 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
           )}
 
           {/* Zone / Union */}
-
           {upazila.id && (
             <>
               <ChevronRight className="w-3 h-3 text-slate-600 shrink-0 self-center" />
-
               <button
                 type="button"
                 onClick={goToUnionZone}
@@ -1002,18 +649,12 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
           )}
 
           {/* Area */}
-
           {unionZone.id && (
             <>
               <ChevronRight className="w-3 h-3 text-slate-600 shrink-0 self-center" />
-
               <button
                 type="button"
-                onClick={() => {
-                  if (area.id) {
-                    setStep("area");
-                  }
-                }}
+                onClick={() => setStep("area")}
                 className={`
                   flex flex-col text-left
                   transition-colors duration-200
@@ -1037,10 +678,7 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
           )}
         </div>
 
-        {/* =====================================================================
-            BODY
-        ===================================================================== */}
-
+        {/* BODY */}
         <div
           className="
             p-6
@@ -1051,10 +689,6 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
             min-h-[180px]
           "
         >
-          {/* -------------------------------------------------------------------
-              Loading
-          ------------------------------------------------------------------- */}
-
           {loading && (
             <div
               className="
@@ -1071,18 +705,12 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
                 text-emerald-400
                 text-xs
                 font-medium
-                animate-in fade-in duration-200
               "
             >
               <Loader2 className="w-6 h-6 animate-spin" />
-
               <span>ডেটা লোড হচ্ছে...</span>
             </div>
           )}
-
-          {/* -------------------------------------------------------------------
-              Error
-          ------------------------------------------------------------------- */}
 
           {error && !loading && (
             <div
@@ -1095,22 +723,17 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
                 bg-red-500/10
                 text-red-300
                 text-xs
-                animate-in fade-in duration-200
               "
             >
               {error}
             </div>
           )}
 
-          {/* ===================================================================
-              STEP 1 — DIVISION
-          =================================================================== */}
-
+          {/* STEP 1 — DIVISION */}
           {step === "division" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 animate-in fade-in zoom-in-95 duration-300">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {divisions.length === 0 &&
                 renderEmptyState("কোনো বিভাগ পাওয়া যায়নি।")}
-
               {divisions.map((item) =>
                 renderLocationButton({
                   item,
@@ -1122,15 +745,11 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
             </div>
           )}
 
-          {/* ===================================================================
-              STEP 2 — DISTRICT
-          =================================================================== */}
-
+          {/* STEP 2 — DISTRICT */}
           {step === "district" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 animate-in fade-in zoom-in-95 duration-300">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {districts.length === 0 &&
                 renderEmptyState("এই বিভাগের অধীনে কোনো জেলা পাওয়া যায়নি।")}
-
               {districts.map((item) =>
                 renderLocationButton({
                   item,
@@ -1142,15 +761,11 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
             </div>
           )}
 
-          {/* ===================================================================
-              STEP 3 — UPAZILA
-          =================================================================== */}
-
+          {/* STEP 3 — UPAZILA */}
           {step === "upazila" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 animate-in fade-in zoom-in-95 duration-300">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {upazilas.length === 0 &&
                 renderEmptyState("এই জেলার অধীনে কোনো উপজেলা পাওয়া যায়নি।")}
-
               {upazilas.map((item) =>
                 renderLocationButton({
                   item,
@@ -1162,17 +777,13 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
             </div>
           )}
 
-          {/* ===================================================================
-              STEP 4 — ZONE / UNION / MUNICIPALITY
-          =================================================================== */}
-
+          {/* STEP 4 — ZONE / UNION */}
           {step === "unionZone" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 animate-in fade-in zoom-in-95 duration-300">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {unionZones.length === 0 &&
                 renderEmptyState(
                   "এই উপজেলার অধীনে কোনো Zone / Union / Municipality পাওয়া যায়নি।",
                 )}
-
               {unionZones.map((item) =>
                 renderLocationButton({
                   item,
@@ -1184,17 +795,13 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
             </div>
           )}
 
-          {/* ===================================================================
-              STEP 5 — AREA
-          =================================================================== */}
-
+          {/* STEP 5 — AREA */}
           {step === "area" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 animate-in fade-in zoom-in-95 duration-300">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {areas.length === 0 &&
                 renderEmptyState(
                   "এই Zone / Union-এর অধীনে কোনো Area পাওয়া যায়নি।",
                 )}
-
               {areas.map((item) =>
                 renderLocationButton({
                   item,
@@ -1206,64 +813,31 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
             </div>
           )}
 
-          {/* ===================================================================
-              STEP 6 — COMPLETED
-          =================================================================== */}
-
+          {/* STEP 6 — COMPLETED */}
           {step === "completed" && (
-            <div className="py-8 animate-in fade-in zoom-in-95 duration-300">
-              <div
-                className="
-                  flex
-                  flex-col
-                  items-center
-                  justify-center
-                  text-center
-                  gap-4
-                "
-              >
-                <div
-                  className="
-                    w-14
-                    h-14
-                    rounded-full
-                    bg-emerald-500/20
-                    flex
-                    items-center
-                    justify-center
-                    text-emerald-400
-                    animate-bounce
-                  "
-                >
-                  <Check className="w-7 h-7" />
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-bold text-white mb-2">
-                    লোকেশন নির্বাচন সম্পন্ন
-                  </h3>
-
-                  <p className="text-xs text-slate-400 leading-6">
-                    {division.name}
-                    {" → "}
-                    {district.name}
-                    {" → "}
-                    {upazila.name}
-                    {" → "}
-                    {unionZone.name}
-                    {" → "}
-                    {area.name}
-                  </p>
-                </div>
+            <div className="py-8 text-center">
+              <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 mx-auto mb-4 animate-bounce">
+                <Check className="w-7 h-7" />
               </div>
+              <h3 className="text-sm font-bold text-white mb-2">
+                লোকেশন নির্বাচন সম্পন্ন
+              </h3>
+              <p className="text-xs text-slate-400 leading-6">
+                {[
+                  division.name,
+                  district.name,
+                  upazila.name,
+                  unionZone.name,
+                  area.name,
+                ]
+                  .filter(Boolean)
+                  .join(" → ")}
+              </p>
             </div>
           )}
         </div>
 
-        {/* =====================================================================
-            FOOTER
-        ===================================================================== */}
-
+        {/* FOOTER */}
         <div
           className="
             flex
@@ -1276,7 +850,6 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
             bg-[#121929]/50
           "
         >
-          {/* Reset Button with Icon */}
           <button
             type="button"
             onClick={handleReset}
@@ -1293,8 +866,6 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
               hover:bg-white/10
               border
               border-white/10
-              transition-all duration-200
-              active:scale-95
               cursor-pointer
             "
           >
@@ -1303,11 +874,15 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
           </button>
 
           <div className="flex items-center gap-2">
-            {/* Back Button */}
             {step !== "division" && step !== "completed" && (
               <button
                 type="button"
-                onClick={handleBack}
+                onClick={() => {
+                  if (step === "area") setStep("unionZone");
+                  else if (step === "unionZone") setStep("upazila");
+                  else if (step === "upazila") setStep("district");
+                  else if (step === "district") setStep("division");
+                }}
                 className="
                   px-4
                   py-2
@@ -1319,8 +894,6 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
                   hover:bg-white/10
                   border
                   border-white/10
-                  transition-all duration-200
-                  active:scale-95
                   cursor-pointer
                 "
               >
@@ -1328,7 +901,6 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
               </button>
             )}
 
-            {/* Cancel Button */}
             <button
               type="button"
               onClick={handleClose}
@@ -1343,19 +915,17 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
                 hover:bg-red-500/20
                 border
                 border-red-500/20
-                transition-all duration-200
-                active:scale-95
                 cursor-pointer
               "
             >
               Cancel
             </button>
 
-            {/* Done Button */}
+            {/* Flexible Done Button: enabled as soon as division is chosen */}
             <button
               type="button"
               onClick={handleDone}
-              disabled={!area.id}
+              disabled={!division.id}
               className="
                 px-5
                 py-2
@@ -1368,12 +938,9 @@ export default function LocationModal({ isOpen, onClose, onSelectLocation }) {
                 disabled:text-slate-500
                 disabled:cursor-not-allowed
                 text-slate-950
-                transition-all duration-200
-                active:scale-95
+                cursor-pointer
                 shadow-md
                 shadow-emerald-500/20
-                hover:shadow-emerald-500/40
-                cursor-pointer
               "
             >
               Done

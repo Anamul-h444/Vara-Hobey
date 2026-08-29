@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import { userNavItems } from '@/config/dashboardNav';
-import DashboardSidebar from '@/app/components/dashboard/layout/DashboardSidebar';
-import DashboardHeader from '@/app/components/dashboard/layout/DashboardHeader';
-import DashboardMobileHeader from '@/app/components/dashboard/layout/DashboardMobileHeader';
-import ProfileModal from '@/app/components/common/ProfileModal';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { userNavItems } from "@/config/userNav";
+import UserDashboardSidebar from "@/app/user/dashboard/UserDashboardSidebar";
+import UserDashboardHeader from "@/app/user/dashboard/UserDashboardHeader";
+import UserDashboardMobileHeader from "@/app/user/dashboard/UserDashboardMobileHeader";
+import ProfileModal from "@/app/components/common/ProfileModal";
 
 export default function UserDashboardLayout({ children }) {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function UserDashboardLayout({ children }) {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace('/');
+      router.replace("/");
     }
   }, [user, loading, router]);
 
@@ -34,18 +34,18 @@ export default function UserDashboardLayout({ children }) {
 
   return (
     <div className="h-screen w-full bg-[#080b11] text-white flex overflow-hidden antialiased">
-      <DashboardSidebar navItems={userNavItems} roleLabel="User Panel" />
-      
-      <DashboardMobileHeader 
-        navItems={userNavItems} 
-        roleLabel="User Panel" 
-        isOpen={isMobileMenuOpen} 
-        onClose={() => setIsMobileMenuOpen(false)} 
+      <UserDashboardSidebar navItems={userNavItems} roleLabel="User Panel" />
+
+      <UserDashboardMobileHeader
+        navItems={userNavItems}
+        roleLabel="User Panel"
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
       />
 
       <div className="flex-1 lg:pl-64 h-full flex flex-col overflow-hidden">
-        <DashboardHeader 
-          roleLabel="User Panel" 
+        <UserDashboardHeader
+          roleLabel="User Panel"
           onToggleMobileMenu={() => setIsMobileMenuOpen(true)}
           onOpenProfileModal={() => setIsProfileModalOpen(true)}
         />
@@ -54,9 +54,9 @@ export default function UserDashboardLayout({ children }) {
         </main>
       </div>
 
-      <ProfileModal 
-        isOpen={isProfileModalOpen} 
-        onClose={() => setIsProfileModalOpen(false)} 
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
       />
     </div>
   );
