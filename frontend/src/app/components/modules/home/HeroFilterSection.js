@@ -2,22 +2,16 @@
  * ==============================================================================
  * Project: Vara Hobe Web Application
  * File: src/app/components/modules/home/HeroFilterSection.js
- * Description: Hero filter section with enhanced UI/UX, readable typography, and dynamic rent types.
+ * Description: Hero filter section with single-column vertical stack for mobile and tablet screens.
  * ==============================================================================
  */
 
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  Search,
-  Building2,
-  SlidersHorizontal,
-  MapPin,
-  ChevronDown,
-} from "lucide-react";
+import React, { useState } from "react";
+import { Search, SlidersHorizontal, MapPin, ChevronDown } from "lucide-react";
 import Button from "@/app/components/ui/Button";
-import CustomSelect from "@/app/components/ui/CustomSelect";
+import CategorySelect from "@/app/components/ui/CategorySelect";
 import LocationModal from "@/app/components/ui/LocationModal";
 import AdvancedFilterModal from "@/app/components/modules/home/AdvancedFilterModal";
 
@@ -29,9 +23,6 @@ export default function HeroFilterSection({
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isAdvancedModalOpen, setIsAdvancedModalOpen] = useState(false);
 
-  // ডাইনামিক প্রপার্টি টাইপের জন্য স্টেট
-  const [propertyTypes, setPropertyTypes] = useState([]);
-
   const [locationObj, setLocationObj] = useState({
     division: { id: "", name: "" },
     district: { id: "", name: "" },
@@ -39,35 +30,6 @@ export default function HeroFilterSection({
     unionZone: { id: "", name: "", type: "" },
     area: { id: "", name: "" },
   });
-
-  // ব্যাকএন্ড থেকে ডাইনামিক রেন্ট টাইপ ফেচ এবং ফরম্যাট করা
-  useEffect(() => {
-    fetch("http://localhost:5000/api/rent-types")
-      .then(async (res) => {
-        const contentType = res.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          return res.json();
-        } else {
-          throw new Error(
-            "API did not return JSON. Endpoint might be incorrect.",
-          );
-        }
-      })
-      .then((data) => {
-        if (data.success && Array.isArray(data.data)) {
-          const formattedTypes = data.data.map((item) => ({
-            id: item.type,
-            name: item.name,
-            bnName: item.bnName,
-            category: item.category,
-          }));
-          setPropertyTypes(formattedTypes);
-        }
-      })
-      .catch((err) =>
-        console.error("Failed to fetch rent types:", err.message),
-      );
-  }, []);
 
   const handleFilterClick = () => {
     if (!selectedType) {
@@ -83,12 +45,12 @@ export default function HeroFilterSection({
     if (locationObj.upazila?.name) return locationObj.upazila.name;
     if (locationObj.district?.name) return locationObj.district.name;
     if (locationObj.division?.name) return locationObj.division.name;
-    return "All Division / সকল বিভাগ";
+    return "Search by Location";
   };
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-6 relative z-30 px-4">
-      {/* 1. Quick Search Bar with Original Emerald Glow */}
+      {/* 1. Quick Search Bar with Enhanced Glow */}
       <div className="animate-hero-search relative w-full max-w-3xl mx-auto group">
         <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/40 via-teal-400/40 to-cyan-500/40 rounded-full blur-md opacity-40 group-hover:opacity-80 transition duration-500" />
 
@@ -97,8 +59,8 @@ export default function HeroFilterSection({
             <Search className="w-5 h-5 text-emerald-400 shrink-0 ml-1" />
             <input
               type="text"
-              placeholder="এলাকা বা ল্যান্ডমার্ক দিয়ে সহজে সার্চ করুন..."
-              className="font-bangla w-full bg-transparent text-slate-100 px-3.5 py-2 text-sm sm:text-base focus:outline-none placeholder:text-slate-400 font-medium"
+              placeholder="Search by area, landmark or keyword..."
+              className="font-sans w-full bg-transparent text-slate-100 px-3.5 py-2 text-xs sm:text-sm focus:outline-none placeholder:text-slate-400 font-medium"
             />
             <Button
               variant="primary"
@@ -111,76 +73,62 @@ export default function HeroFilterSection({
         </div>
       </div>
 
-      {/* 2. Filter Modules Grid */}
-      <div className="animate-hero-filter grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-4 items-stretch text-left pb-12 md:pb-0">
-        {/* Rental Type Selection Box */}
-        <div className="bg-[#121824]/95 backdrop-blur-xl border border-white/10 hover:border-emerald-500/50 rounded-3xl p-5 flex flex-col justify-between transition-all duration-300 shadow-2xl relative z-40 group">
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs sm:text-sm font-bold text-slate-100 tracking-wide font-bangla">
-                ভাড়ার ধরন নির্বাচন করুন
-              </span>
-              <Building2 className="w-4 h-4 text-emerald-400 opacity-80 group-hover:opacity-100 transition-opacity" />
-            </div>
-            <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase block mb-3">
-              SELECT RENTAL TYPE
-            </span>
-          </div>
-          <div className="w-full">
-            <CustomSelect
-              label=""
-              icon={null}
-              value={selectedType}
-              onChange={setSelectedType}
-              options={propertyTypes}
-              placeholder="All Types"
-              searchable={true}
-            />
-          </div>
+      {/* 2. Filter Modules Grid (1 column on mobile & tablet, 3 columns on large desktop) */}
+      <div className="animate-hero-filter grid grid-cols-1 lg:grid-cols-3 gap-4 items-center text-left pb-12 md:pb-0">
+        {/* Rental Type Selection */}
+        <div className="w-full relative z-40">
+          <CategorySelect
+            label=""
+            value={selectedType}
+            onChange={setSelectedType}
+            placeholder="Search By Fare Category"
+            searchable={true}
+          />
         </div>
 
-        {/* Location Selection Box */}
-        <div
-          onClick={() => setIsLocationModalOpen(true)}
-          className="bg-[#121824]/95 backdrop-blur-xl border border-white/10 hover:border-emerald-500/50 rounded-3xl p-5 flex flex-col justify-between transition-all duration-300 cursor-pointer shadow-2xl relative z-30 group"
-        >
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs sm:text-sm font-bold text-slate-100 tracking-wide font-bangla">
-                লোকেশন অনুযায়ী ভাড়া খুঁজুন
+        {/* Location Selection Button */}
+        <div className="w-full relative z-30">
+          <button
+            type="button"
+            onClick={() => setIsLocationModalOpen(true)}
+            className={`group flex h-[50px] w-full items-center justify-between gap-3 rounded-2xl border px-4 text-left outline-none transition-all duration-300 ease-out cursor-pointer ${
+              locationObj.division?.id
+                ? "border-emerald-400/50 bg-[#141c29] shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                : "border-white/10 bg-[#121824]/90 hover:border-emerald-500/40 hover:bg-[#161f30]"
+            }`}
+          >
+            <div className="min-w-0 flex-1 flex items-center gap-2.5">
+              <MapPin className="h-4 w-4 shrink-0 text-emerald-400 transition-transform duration-300 group-hover:scale-110" />
+              <span
+                className={`truncate text-xs sm:text-sm font-medium ${
+                  locationObj.division?.id
+                    ? "text-emerald-400 font-semibold"
+                    : "text-slate-400"
+                }`}
+              >
+                {getLocationSummary()}
               </span>
-              <MapPin className="w-4 h-4 text-emerald-400 opacity-80 group-hover:scale-110 group-hover:opacity-100 transition-all" />
             </div>
-            <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase block mb-2">
-              SEARCH RENTALS BY LOCATION
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-xs sm:text-sm font-semibold pt-1">
-            <span
-              className={`truncate ${locationObj.division?.id ? "text-emerald-400" : "text-slate-200"}`}
-            >
-              {getLocationSummary()}
-            </span>
-            <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 ml-1 group-hover:translate-y-0.5 transition-transform" />
-          </div>
+            <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform duration-300 group-hover:text-slate-200" />
+          </button>
         </div>
 
-        {/* Advanced Filters Action Button */}
-        <div className="relative z-20">
+        {/* Advanced Filters Button */}
+        <div className="w-full relative z-20">
           <button
             type="button"
             onClick={handleFilterClick}
-            className="w-full h-full min-h-[105px] rounded-3xl bg-[#121824]/95 hover:bg-[#161f30] border border-white/10 hover:border-emerald-500/50 text-slate-100 flex flex-col items-center justify-center text-center p-5 transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-2xl group"
+            className="group flex h-[50px] w-full items-center justify-between gap-3 rounded-2xl border px-4 text-left outline-none transition-all duration-300 ease-out cursor-pointer border-white/10 bg-[#121824]/90 hover:border-emerald-500/40 hover:bg-[#161f30] shadow-sm"
           >
-            <div className="flex items-center gap-2 mb-1.5">
-              <SlidersHorizontal className="w-4 h-4 text-emerald-400 group-hover:rotate-95 transition-transform duration-300" />
-              <span className="text-xs sm:text-sm font-bold text-slate-100 group-hover:text-emerald-400 transition-colors font-bangla">
-                বিস্তারিত ফিল্টার করুন
+            <div className="min-w-0 flex-1 flex items-center gap-2.5">
+              <SlidersHorizontal className="h-4 w-4 shrink-0 text-emerald-400 group-hover:rotate-90 transition-transform duration-300" />
+              <span className="truncate text-xs sm:text-sm font-medium text-slate-400">
+                Advanced Filters
               </span>
             </div>
-            <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-              ADVANCED FILTERS
-            </span>
+            <div className="h-5 w-5 rounded-full bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
+              <span className="text-[10px] font-bold text-emerald-400">+</span>
+            </div>
           </button>
         </div>
       </div>

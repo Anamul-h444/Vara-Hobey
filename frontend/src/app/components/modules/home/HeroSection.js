@@ -38,8 +38,8 @@ export default function HeroSection({ selectedType, setSelectedType }) {
         <h1 className="text-3xl sm:text-5xl md:text-6xl xl:text-7xl font-extrabold text-white tracking-tight leading-none drop-shadow-2xl">
           YOURS TO RENT
         </h1>
-        <p className="font-bangla text-xs sm:text-sm md:text-[18px] text-slate-300/90 mt-3 font-normal max-w-lg mx-auto tracking-wide">
-          খুঁজে নিন আপনার পছন্দের ফ্ল্যাট, সাবলেট, মেস কিংবা বাণিজ্যিক স্পেস
+        <p className="font-sans text-xs sm:text-sm md:text-[18px] text-slate-300/90 mt-3 font-normal max-w-lg mx-auto tracking-wide">
+          Find Your Place, Your Way
         </p>
       </div>
 

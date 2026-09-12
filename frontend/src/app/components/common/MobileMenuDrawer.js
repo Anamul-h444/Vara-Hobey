@@ -2,7 +2,7 @@
  * ==============================================================================
  * Project: Vara Hobe Web Application
  * File: src/app/components/common/MobileMenuDrawer.js
- * Description: Mobile navigation drawer matched with desktop sidebar UI & Add Fare button.
+ * Description: Mobile navigation drawer with pure English UI matched with desktop sidebar.
  * ==============================================================================
  */
 
@@ -27,7 +27,7 @@ export default function MobileMenuDrawer({
 
   if (!isOpen) return null;
 
-  // ড্যাশবোর্ড পাথ ডিটারমিনার
+  // Dashboard path determiner
   const getDashboardPath = () => {
     if (!user) return "/";
     const isAdmin = Boolean(
@@ -70,7 +70,7 @@ export default function MobileMenuDrawer({
   };
 
   return (
-    <div className="fixed inset-0 z-[99999] md:hidden">
+    <div className="fixed inset-0 z-[99999] md:hidden font-sans">
       <div
         className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 animate-in fade-in cursor-pointer"
         onClick={onClose}
@@ -124,7 +124,7 @@ export default function MobileMenuDrawer({
             </div>
           )}
 
-          {/* SPECIAL ACTION BUTTON: Add Fare / ভাড়া দিন (Matched with Desktop Sidebar) */}
+          {/* SPECIAL ACTION BUTTON: Add Fare */}
           <Link
             href="/user/add-property"
             onClick={handleAddFareClick}
@@ -135,10 +135,7 @@ export default function MobileMenuDrawer({
                 <PlusCircle className="w-5 h-5 transition-transform duration-300 group-hover:rotate-90 text-slate-950" />
               </div>
               <div className="flex flex-col text-left">
-                <span className="text-xs font-extrabold font-bangla leading-tight text-slate-950">
-                  ভাড়া দিন
-                </span>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-900 opacity-90 leading-none">
+                <span className="text-xs font-extrabold uppercase tracking-wide leading-tight text-slate-950">
                   Add Fare
                 </span>
               </div>
